@@ -22,9 +22,10 @@ Windows Desktop Application (Avalonia .NET)
 |-------|------------|
 | UI Framework | Avalonia UI 11.3.4 |
 | MVVM | CommunityToolkit.Mvvm 8.4.1 |
-| AI Framework | Semantic Kernel |
-| AI Backend | DeepSeek API |
-| Database | SQLite + Entity Framework Core |
+| AI Framework | Semantic Kernel 1.x（含流式 API 支持） |
+| AI Backend | DeepSeek API（OpenAI 兼容协议） |
+| Markdown 渲染 | LiveMarkdown.Avalonia 1.9.2 |
+| Database | SQLite + Entity Framework Core 8.0 |
 | Theme | SukiUI 6.0.3 |
 
 ---
@@ -35,18 +36,26 @@ Windows Desktop Application (Avalonia .NET)
 ┌─────────────────────────────────────────────┐
 │                   Views                      │
 │         (Avalonia .axaml)                   │
+│  ┌──────────────────────────────────────┐   │
+│  │  MarkdownRenderer (LiveMarkdown)     │   │
+│  │  ObservableStringBuilder (流式绑定)  │   │
+│  └──────────────────────────────────────┘   │
 └─────────────────┬───────────────────────────┘
                   │
 ┌─────────────────▼───────────────────────────┐
 │               ViewModels                     │
 │      (CommunityToolkit.Mvvm)               │
+│  • StreamingBuilder (流式缓冲)              │
+│  • CancellationTokenSource (停止写作)       │
+│  • StreamingContentUpdated (自动滚动事件)   │
 └─────────────────┬───────────────────────────┘
                   │
 ┌─────────────────▼───────────────────────────┐
 │                Services                      │
 │  ┌─────────────┐  ┌─────────────────────┐  │
 │  │ LLMService  │  │   StoryService      │  │
-│  │ (SK+DeepSeek│  │   ChapterService    │  │
+│  │ (SK+DeepSeek│  │   (大纲+章节+流式)  │  │
+│  │ 普通+流式)  │  │                     │  │
 │  └─────────────┘  └─────────────────────┘  │
 │  ┌─────────────┐  ┌─────────────────────┐  │
 │  │StorageService│  │  DatabaseService   │  │
@@ -143,6 +152,10 @@ AI 根据用户输入的题材和世界观，生成：
 #### Step 2：章节写作
 
 - AI 自动从第一章开始，根据大纲逐章生成正文
+- **流式输出**：通过 Semantic Kernel 的 `GetStreamingChatMessageContentsAsync` 逐 token 推送，用户无需等待完整章节生成
+- **Markdown 实时渲染**：基于 `ObservableStringBuilder` + `LiveMarkdown.Avalonia`，每收到 token 即解析渲染
+- **自动滚动**：流式输出时内容区自动滚动到最新位置
+- **停止写作**：通过 `CancellationTokenSource` 随时中断，已生成内容自动保存
 - 每章生成完毕后，状态变为 `Completed`
 - 用户可随时暂停、修改上一章、或干预后续剧情
 
@@ -340,15 +353,23 @@ JSON 格式，字段：title（章节标题），summary（章节概要）
 ```csharp
 // NuGet: Microsoft.SemanticKernel
 var kernel = Kernel.CreateBuilder()
-    .AddDeepSeekChatCompletion(
+    .AddOpenAIChatCompletion(
         modelId: "deepseek-chat",
         apiKey: "your-api-key",
-        endpoint: "https://api.deepseek.com")
+        endpoint: new Uri("https://api.deepseek.com"))
     .Build();
 
-// 使用
-var prompt = "写一段小说内容...";
-var result = await kernel.InvokePromptAsync(prompt);
+// 普通调用
+var chatService = kernel.GetRequiredService<IChatCompletionService>();
+var result = await chatService.GetChatMessageContentAsync(chatHistory, executionSettings);
+
+// 流式调用（逐 token 推送）
+await foreach (var chunk in chatService.GetStreamingChatMessageContentsAsync(chatHistory, executionSettings))
+{
+    var text = chunk.Content;
+    if (!string.IsNullOrEmpty(text))
+        yield return text;  // 实时推送到 UI
+}
 ```
 
 ### 8.2 API 配置
@@ -484,22 +505,26 @@ AINovelFlow/
 ## 12. Milestones
 
 ### M1: 基础框架
-- [ ] 项目搭建（Avalonia + EF Core + SK）
-- [ ] 数据库配置和迁移
-- [ ] 基础 UI 框架（SukiSideMenu 导航）
+- [x] 项目搭建（Avalonia + EF Core + SK）
+- [x] 数据库配置和迁移
+- [x] 基础 UI 框架（SukiSideMenu 导航）
 
 ### M2: 书架功能
-- [ ] 小说 CRUD
-- [ ] 小说列表展示
+- [x] 小说 CRUD
+- [x] 小说列表展示
 
 ### M3: 设置功能
-- [ ] API Key 配置
-- [ ] 设置保存和加载
+- [x] API Key 配置
+- [x] 设置保存和加载
 
 ### M4: 创作功能
-- [ ] 大纲生成（SK + DeepSeek）
-- [ ] 章节写作
-- [ ] 进度控制（暂停/继续）
+- [x] 大纲生成（SK + DeepSeek）
+- [x] 章节写作
+- [x] 流式输出（IAsyncEnumerable + 逐 token 推送）
+- [x] Markdown 实时渲染（LiveMarkdown.Avalonia + ObservableStringBuilder）
+- [x] 自动滚动（StreamingContentUpdated 事件驱动）
+- [x] 停止写作（CancellationTokenSource）
+- [x] 进度控制（暂停/继续）
 
 ### M5: 干预功能
 - [ ] 剧情调整指令
@@ -507,8 +532,8 @@ AINovelFlow/
 - [ ] 手动编辑
 
 ### M6: 阅读和导出
-- [ ] 章节阅读
-- [ ] TXT 导出
+- [x] 章节阅读
+- [x] TXT 导出
 
 ---
 
@@ -522,6 +547,7 @@ AINovelFlow/
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
   <ItemGroup>
@@ -537,15 +563,19 @@ AINovelFlow/
     <!-- MVVM -->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
 
+    <!-- Markdown 渲染（支持 ObservableStringBuilder 流式输入） -->
+    <PackageReference Include="LiveMarkdown.Avalonia" Version="1.9.2" />
+
     <!-- Database -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.x" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.x">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.*">
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <!-- Semantic Kernel -->
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.x" />
+    <!-- Semantic Kernel（含流式 API 支持） -->
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.*" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.*" />
   </ItemGroup>
 
 </Project>
@@ -564,5 +594,6 @@ AINovelFlow/
 
 ---
 
-*Document Version: 1.0*
+*Document Version: 1.1*
 *Created: 2026-04-25*
+*Updated: 2026-04-26 — 更新里程碑完成状态、新增流式输出和 Markdown 渲染功能描述*

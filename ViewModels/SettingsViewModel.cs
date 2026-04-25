@@ -18,9 +18,13 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
+    /// <summary>提示词模板管理子 ViewModel</summary>
+    public PromptTemplateViewModel PromptTemplateViewModel { get; }
+
     public SettingsViewModel()
     {
         _dbService = new DatabaseService();
+        PromptTemplateViewModel = new PromptTemplateViewModel();
         _ = LoadSettingsAsync();
     }
 

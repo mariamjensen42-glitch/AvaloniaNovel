@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using AvaloniaNovel.Models;
 
@@ -16,14 +17,13 @@ public class StoryService
         _llmService = new LLMService();
     }
 
-    public async Task<List<Chapter>> GenerateOutlineAsync(string genre, string worldSetting)
-    {
-        var prompt = $@"## 任务
+    // ── 默认内置 Prompt（兼容无模板场景）──────────────────────────────────
+    private const string DefaultOutlinePrompt = @"## 任务
 根据以下设定，生成网络小说大纲。
 
 ## 输入
-- 题材：{genre}
-- 世界观：{worldSetting}
+- 题材：{{genre}}
+- 世界观：{{worldSetting}}
 
 ## 要求
 1. 生成 10-15 章的章节列表
@@ -34,35 +34,15 @@ public class StoryService
 ## 输出格式
 JSON 格式，字段：title（章节标题），summary（章节概要）";
 
-        var response = await _llmService.InvokeAsync(prompt);
-
-        var chapters = ParseChaptersFromJson(response);
-
-        for (int i = 0; i < chapters.Count; i++)
-        {
-            chapters[i].Order = i + 1;
-            chapters[i].Status = ChapterStatus.Outline;
-        }
-
-        return chapters;
-    }
-
-    public async Task<string> WriteChapterAsync(
-        string chapterTitle,
-        string chapterSummary,
-        string genre,
-        string worldSetting,
-        string previousSummary)
-    {
-        var prompt = $@"## 任务
+    private const string DefaultChapterPrompt = @"## 任务
 根据以下大纲，写出章节正文。
 
 ## 输入
-- 章节标题：{chapterTitle}
-- 章节概要：{chapterSummary}
-- 前文剧情：{previousSummary}
-- 题材：{genre}
-- 世界观：{worldSetting}
+- 章节标题：{{chapterTitle}}
+- 章节概要：{{chapterSummary}}
+- 前文剧情：{{previousSummary}}
+- 题材：{{genre}}
+- 世界观：{{worldSetting}}
 
 ## 要求
 1. 字数：2000-5000 字
@@ -74,7 +54,98 @@ JSON 格式，字段：title（章节标题），summary（章节概要）";
 ## 输出
 直接输出章节正文，不需要额外格式。";
 
-        return await _llmService.InvokeAsync(prompt);
+    // ── 模板变量替换 ──────────────────────────────────────────────────
+    private static string RenderTemplate(string template, Dictionary<string, string> variables)
+    {
+        var result = template;
+        foreach (var (key, value) in variables)
+        {
+            result = result.Replace($"{{{{{key}}}}}", value);
+        }
+        return result;
+    }
+
+    // ── 大纲生成（支持自定义模板）──────────────────────────────────────
+    public async Task<List<Chapter>> GenerateOutlineAsync(
+        string genre, string worldSetting,
+        string? outlineTemplate = null, string? systemPrompt = null)
+    {
+        var template = string.IsNullOrWhiteSpace(outlineTemplate)
+            ? DefaultOutlinePrompt
+            : outlineTemplate;
+
+        var prompt = RenderTemplate(template, new Dictionary<string, string>
+        {
+            ["genre"] = genre,
+            ["worldSetting"] = worldSetting
+        });
+
+        var response = await _llmService.InvokeAsync(prompt, systemPrompt);
+        var chapters = ParseChaptersFromJson(response);
+
+        for (int i = 0; i < chapters.Count; i++)
+        {
+            chapters[i].Order = i + 1;
+            chapters[i].Status = ChapterStatus.Outline;
+        }
+
+        return chapters;
+    }
+
+    // ── 章节写作（普通）──────────────────────────────────────────────
+    public async Task<string> WriteChapterAsync(
+        string chapterTitle, string chapterSummary,
+        string genre, string worldSetting, string previousSummary,
+        string? chapterTemplate = null, string? systemPrompt = null)
+    {
+        var prompt = BuildChapterPrompt(chapterTitle, chapterSummary,
+            genre, worldSetting, previousSummary, chapterTemplate);
+        return await _llmService.InvokeAsync(prompt, systemPrompt);
+    }
+
+    // ── 章节写作（流式）──────────────────────────────────────────────
+    /// <summary>
+    /// 流式写章节：每收到一个 token 片段就调用 <paramref name="onChunk"/>，
+    /// 最终返回完整正文。可通过 <paramref name="cancellationToken"/> 取消。
+    /// </summary>
+    public async Task<string> WriteChapterStreamAsync(
+        string chapterTitle, string chapterSummary,
+        string genre, string worldSetting, string previousSummary,
+        Action<string> onChunk,
+        CancellationToken cancellationToken = default,
+        string? chapterTemplate = null, string? systemPrompt = null)
+    {
+        var prompt = BuildChapterPrompt(chapterTitle, chapterSummary,
+            genre, worldSetting, previousSummary, chapterTemplate);
+        var fullContent = new System.Text.StringBuilder();
+
+        await foreach (var chunk in _llmService.InvokeStreamAsync(prompt, systemPrompt, cancellationToken))
+        {
+            fullContent.Append(chunk);
+            onChunk(chunk);
+        }
+
+        return fullContent.ToString();
+    }
+
+    // ── 共用 Prompt 构造 ──────────────────────────────────────────────
+    private static string BuildChapterPrompt(
+        string chapterTitle, string chapterSummary,
+        string genre, string worldSetting, string previousSummary,
+        string? chapterTemplate = null)
+    {
+        var template = string.IsNullOrWhiteSpace(chapterTemplate)
+            ? DefaultChapterPrompt
+            : chapterTemplate;
+
+        return RenderTemplate(template, new Dictionary<string, string>
+        {
+            ["chapterTitle"] = chapterTitle,
+            ["chapterSummary"] = chapterSummary,
+            ["previousSummary"] = previousSummary,
+            ["genre"] = genre,
+            ["worldSetting"] = worldSetting
+        });
     }
 
     private List<Chapter> ParseChaptersFromJson(string json)

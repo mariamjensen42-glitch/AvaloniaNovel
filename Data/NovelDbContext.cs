@@ -10,6 +10,7 @@ public class NovelDbContext : DbContext
     public DbSet<Novel> Novels => Set<Novel>();
     public DbSet<Chapter> Chapters => Set<Chapter>();
     public DbSet<AppSettings> AppSettings => Set<AppSettings>();
+    public DbSet<PromptTemplate> PromptTemplates => Set<PromptTemplate>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
@@ -47,6 +48,14 @@ public class NovelDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.DeepSeekApiKey).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<PromptTemplate>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Content).IsRequired();
+            entity.HasIndex(e => e.Type);
         });
     }
 }

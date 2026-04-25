@@ -1,13 +1,16 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:AvaloniaNovel.ViewModels"
+             xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia"
              x:Class="AvaloniaNovel.Views.CreateView"
              x:DataType="vm:CreateViewModel">
 
     <DockPanel>
+        <!-- ── 顶部工具栏 ───────────────────────────────────────────── -->
         <Border DockPanel.Dock="Top" Background="{DynamicResource SukiCardBackgroundBrush}"
                 Padding="16,12" Margin="0">
-            <Grid RowDefinitions="Auto,Auto">
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+                <!-- 标题 + 按钮行 -->
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="8,0,8,12">
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                         <TextBlock Text="{Binding CurrentNovel.Title, FallbackValue='未选择小说'}"
@@ -25,14 +28,97 @@
                         <Button Content="停止" Command="{Binding StopWritingCommand}"
                                 IsEnabled="{Binding IsWriting}" Classes="Flat" />
                         <Button Content="导出" Command="{Binding ExportCommand}" Classes="Flat" />
+                        <Button Content="📝模板" Command="{Binding ToggleTemplatePanelCommand}"
+                                Classes="Flat" />
                     </StackPanel>
                 </Grid>
-                <ProgressBar Grid.Row="1" IsIndeterminate="True" IsVisible="{Binding IsWriting}"
-                             Height="3" Margin="8,0" />
+
+                <!-- 进度条 -->
+                <Grid Grid.Row="1" Margin="8,0,8,4">
+                    <ProgressBar IsIndeterminate="True"
+                                 Height="3"
+                                 IsVisible="{Binding IsWriting}" />
+                </Grid>
+
+                <!-- 模板选择面板（可折叠） -->
+                <Border Grid.Row="2" IsVisible="{Binding ShowTemplatePanel}"
+                        Background="{DynamicResource SukiBackgroundBrush}"
+                        CornerRadius="10" Padding="14" Margin="8,0,8,8">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="提示词模板选择" FontSize="13" FontWeight="SemiBold" Opacity="0.8" />
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                            <!-- 系统人设 -->
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="系统人设" FontSize="12" Opacity="0.7" />
+                                <ComboBox ItemsSource="{Binding SystemTemplates}"
+                                          SelectedItem="{Binding SelectedSystemTemplate}"
+                                          HorizontalAlignment="Stretch"
+                                          MinWidth="120">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <!-- 大纲模板 -->
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBlock Text="大纲生成" FontSize="12" Opacity="0.7" />
+                                <ComboBox ItemsSource="{Binding OutlineTemplates}"
+                                          SelectedItem="{Binding SelectedOutlineTemplate}"
+                                          HorizontalAlignment="Stretch"
+                                          MinWidth="120">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <!-- 章节模板 -->
+                            <StackPanel Grid.Column="2" Spacing="4">
+                                <TextBlock Text="章节写作" FontSize="12" Opacity="0.7" />
+                                <ComboBox ItemsSource="{Binding ChapterTemplates}"
+                                          SelectedItem="{Binding SelectedChapterTemplate}"
+                                          HorizontalAlignment="Stretch"
+                                          MinWidth="120">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- 流式写作字数提示 -->
+                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8" Margin="8,0,8,0"
+                            IsVisible="{Binding IsStreaming}">
+                    <TextBlock Text="✍️ 正在生成..." FontSize="12"
+                               Foreground="{DynamicResource SukiAccentColorBrush}"
+                               VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding CurrentWordCount, StringFormat={}{0} 字}"
+                               FontSize="12" FontWeight="SemiBold"
+                               Foreground="{DynamicResource SukiAccentColorBrush}"
+                               VerticalAlignment="Center" />
+                </StackPanel>
             </Grid>
         </Border>
 
+        <!-- ── 底部状态栏 ───────────────────────────────────────────── -->
+        <Border IsVisible="{Binding StatusMessage, Converter={x:Static vm:StringNullOrEmptyConverter.Instance}}"
+                DockPanel.Dock="Bottom" Background="{DynamicResource SukiCardBackgroundBrush}"
+                Padding="16,8">
+            <TextBlock Text="{Binding StatusMessage}"
+                       Foreground="{DynamicResource SukiAccentColorBrush}"
+                       HorizontalAlignment="Center" />
+        </Border>
+
+        <!-- ── 主体：章节列表 + 内容区 ─────────────────────────────── -->
         <Grid ColumnDefinitions="320,*">
+            <!-- 章节列表 -->
             <Border Grid.Column="0" Margin="12" CornerRadius="8"
                     Background="{DynamicResource SukiCardBackgroundBrush}">
                 <DockPanel Margin="12">
@@ -68,9 +154,10 @@
                 </DockPanel>
             </Border>
 
+            <!-- 内容区：Markdown 实时渲染 -->
             <Border Grid.Column="1" Margin="0,12,12,12" CornerRadius="8"
                     Background="{DynamicResource SukiCardBackgroundBrush}">
-                <ScrollViewer Padding="20">
+                <ScrollViewer Name="ContentScrollViewer" Padding="20">
                     <StackPanel Spacing="16">
                         <StackPanel Spacing="8">
                             <TextBlock Text="{Binding SelectedChapter.Title, FallbackValue='选择章节开始创作'}"
@@ -78,21 +165,12 @@
                             <Border Height="1" Background="{DynamicResource SukiTextColorBrush}"
                                     Opacity="0.2" Margin="0,4" />
                         </StackPanel>
-                        <TextBlock
-                            Text="{Binding SelectedChapter.Content, FallbackValue='暂无内容\n\n从左侧选择一个章节，或生成新的大纲开始创作。'}"
-                            TextWrapping="Wrap" LineHeight="28" />
+
+                        <!-- Markdown 渲染器：通过 code-behind 绑定 MarkdownBuilder -->
+                        <md:MarkdownRenderer Name="ContentRenderer" />
                     </StackPanel>
                 </ScrollViewer>
             </Border>
         </Grid>
-
-        <Border IsVisible="{Binding StatusMessage, Converter={x:Static vm:StringNullOrEmptyConverter.Instance}}"
-                DockPanel.Dock="Bottom" Background="{DynamicResource SukiCardBackgroundBrush}"
-                Padding="16,8">
-            <TextBlock Text="{Binding StatusMessage}"
-                       Foreground="{DynamicResource SukiAccentColorBrush}"
-                       HorizontalAlignment="Center" />
-        </Border>
     </DockPanel>
 </UserControl>
-

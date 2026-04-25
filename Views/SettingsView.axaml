@@ -3,6 +3,7 @@
              xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
              xmlns:theme="clr-namespace:SukiUI.Theme;assembly=SukiUI"
              xmlns:vm="using:AvaloniaNovel.ViewModels"
+             xmlns:views="using:AvaloniaNovel.Views"
              x:Class="AvaloniaNovel.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
@@ -95,6 +96,9 @@
                                Opacity="0.76" />
                 </StackPanel>
             </Border>
+
+            <!-- 提示词模板管理 -->
+            <views:PromptTemplateView DataContext="{Binding PromptTemplateViewModel}" />
         </StackPanel>
     </ScrollViewer>
 </UserControl>
