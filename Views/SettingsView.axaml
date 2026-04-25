@@ -1,0 +1,100 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+             xmlns:theme="clr-namespace:SukiUI.Theme;assembly=SukiUI"
+             xmlns:vm="using:AvaloniaNovel.ViewModels"
+             x:Class="AvaloniaNovel.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <ScrollViewer Padding="26,24">
+        <StackPanel Spacing="22"
+                    MaxWidth="860">
+            <sukiUi:GlassCard Classes="Accent"
+                              CornerRadius="24">
+                <Grid ColumnDefinitions="*,Auto"
+                      ColumnSpacing="20"
+                      Margin="6">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="设置中心"
+                                   FontSize="32"
+                                   FontWeight="Bold" />
+                        <TextBlock Text="把模型访问、接口密钥和应用信息收拢到统一的设置页，不再像普通表单那样松散。"
+                                   MaxWidth="560"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.82" />
+                    </StackPanel>
+
+                    <Border Grid.Column="1"
+                            Background="#18FFFFFF"
+                            CornerRadius="18"
+                            Padding="14,12"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="版本 1.0.0"
+                                   FontWeight="SemiBold" />
+                    </Border>
+                </Grid>
+            </sukiUi:GlassCard>
+
+            <Border Background="{DynamicResource SukiCardBackgroundBrush}"
+                    CornerRadius="22"
+                    Padding="22">
+                <StackPanel Spacing="20">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="模型接口"
+                                   FontSize="22"
+                                   FontWeight="Bold" />
+                        <TextBlock Text="当前应用使用 DeepSeek API Key 进行模型访问。"
+                                   Opacity="0.72" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="DeepSeek API Key"
+                                   FontWeight="SemiBold" />
+                        <TextBox Text="{Binding ApiKey}"
+                                 Height="44"
+                                 Watermark="请输入可用的 API Key"
+                                 theme:TextBoxExtensions.AddDeleteButton="True" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="12">
+                        <Button Content="保存设置"
+                                Command="{Binding SaveSettingsCommand}"
+                                Classes="Flat Accent"
+                                IsEnabled="{Binding !IsSaving}" />
+                        <Button Content="保存中..."
+                                IsVisible="{Binding IsSaving}"
+                                theme:ButtonExtensions.ShowProgress="True"
+                                IsEnabled="False" />
+                    </StackPanel>
+
+                    <Border IsVisible="{Binding StatusMessage, Converter={x:Static vm:StringNullOrEmptyConverter.Instance}}"
+                            Background="{DynamicResource SukiBackgroundBrush}"
+                            CornerRadius="14"
+                            Padding="12,10">
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   Foreground="{DynamicResource SukiAccentColorBrush}" />
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <Border Background="{DynamicResource SukiCardBackgroundBrush}"
+                    CornerRadius="22"
+                    Padding="22">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="关于应用"
+                               FontSize="22"
+                               FontWeight="Bold" />
+                    <TextBlock Text="AINovelFlow"
+                               FontSize="18"
+                               FontWeight="SemiBold" />
+                    <TextBlock Text="AI 网文创作工具"
+                               Opacity="0.76" />
+                    <TextBlock Text="当前项目已经覆盖书架、封面上传、章节创作与导出。"
+                               TextWrapping="Wrap"
+                               Opacity="0.76" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

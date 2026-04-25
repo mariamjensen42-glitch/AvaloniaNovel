@@ -1,0 +1,61 @@
+# Build results
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+[Ll]ogs/
+
+# .NET
+.dotnet/
+artifacts/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.idea/
+*.DotSettings.user
+
+# Visual Studio / Rider
+.vs/
+*.userprefs
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+# Test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*_AutoTestResults*
+
+# MSTest
+TestResults/
+
+# .NET Core SDK
+/.dotnet/
+/restore/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project-specific
+.tmp-reflect/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Avalonia specific
+[Aa]valonia/[Rr]eferences
+[Aa]valonia/[Bb]uild

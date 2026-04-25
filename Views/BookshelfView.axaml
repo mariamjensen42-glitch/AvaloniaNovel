@@ -1,0 +1,295 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+             xmlns:theme="clr-namespace:SukiUI.Theme;assembly=SukiUI"
+             xmlns:vm="using:AvaloniaNovel.ViewModels"
+             x:Class="AvaloniaNovel.Views.BookshelfView"
+             x:DataType="vm:BookshelfViewModel">
+
+    <Grid>
+        <ScrollViewer Padding="28,24"
+                      HorizontalScrollBarVisibility="Disabled">
+        <Grid RowDefinitions="Auto,Auto,*"
+              RowSpacing="22">
+                <sukiUi:GlassCard Classes="Primary"
+                                  CornerRadius="24"
+                                  IsInteractive="False"
+                                  HorizontalAlignment="Stretch">
+                    <Grid ColumnDefinitions="*,Auto"
+                          ColumnSpacing="20"
+                          Margin="8">
+                        <StackPanel Spacing="12">
+                            <Border Background="#1AFFFFFF"
+                                    CornerRadius="999"
+                                    Padding="10,4"
+                                    HorizontalAlignment="Left">
+                                <TextBlock Text="作品总览"
+                                           FontSize="12"
+                                           FontWeight="SemiBold" />
+                            </Border>
+
+                            <TextBlock Text="书架"
+                                       FontSize="34"
+                                       FontWeight="Bold" />
+
+                            <TextBlock Text="把小说封面、题材、世界观和创作入口集中在一个更干净的总览页里。"
+                                       MaxWidth="640"
+                                       TextWrapping="Wrap"
+                                       Opacity="0.82"
+                                       FontSize="14" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1"
+                                    Spacing="10"
+                                    Width="180"
+                                    VerticalAlignment="Center">
+                            <Button Content="新建小说"
+                                    Command="{Binding OpenNewNovelDialogCommand}"
+                                    Classes="Flat Accent" />
+                            <Button Content="刷新书架"
+                                    Command="{Binding RefreshCommand}"
+                                    Classes="Outlined" />
+                        </StackPanel>
+                    </Grid>
+                </sukiUi:GlassCard>
+
+                <Grid Grid.Row="1"
+                      ColumnDefinitions="1*,1*,1*"
+                      ColumnSpacing="14"
+                      HorizontalAlignment="Stretch">
+                    <Border Grid.Column="0"
+                            Background="{DynamicResource SukiCardBackgroundBrush}"
+                            CornerRadius="18"
+                            Padding="18">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="作品数量"
+                                       Opacity="0.68" />
+                            <TextBlock Text="{Binding Novels.Count, StringFormat={}{0} 部}"
+                                       FontSize="28"
+                                       FontWeight="Bold" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="1"
+                            Background="{DynamicResource SukiCardBackgroundBrush}"
+                            CornerRadius="18"
+                            Padding="18">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="封面状态"
+                                       Opacity="0.68" />
+                            <TextBlock Text="支持上传"
+                                       FontSize="28"
+                                       FontWeight="Bold" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2"
+                            Background="{DynamicResource SukiCardBackgroundBrush}"
+                            CornerRadius="18"
+                            Padding="18">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="当前视图"
+                                       Opacity="0.68" />
+                            <TextBlock Text="作品列表"
+                                       FontSize="28"
+                                       FontWeight="Bold" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <Border Grid.Row="2"
+                        Background="{DynamicResource SukiCardBackgroundBrush}"
+                        CornerRadius="22"
+                        Padding="22"
+                        HorizontalAlignment="Stretch">
+                    <StackPanel Spacing="18">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="作品列表"
+                                           FontSize="24"
+                                           FontWeight="Bold" />
+                                <TextBlock Text="所有作品都会以统一卡片展示，重点突出封面、题材和进入创作。"
+                                           Opacity="0.72" />
+                            </StackPanel>
+
+                            <Border Grid.Column="1"
+                                    Background="{DynamicResource SukiBackgroundBrush}"
+                                    CornerRadius="999"
+                                    Padding="12,6"
+                                    VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Novels.Count, StringFormat=共 {0} 部作品}"
+                                           FontWeight="SemiBold" />
+                            </Border>
+                        </Grid>
+
+                        <Border IsVisible="{Binding HasNovels, Converter={x:Static vm:InverseBoolConverter.Instance}}"
+                                Background="{DynamicResource SukiBackgroundBrush}"
+                                CornerRadius="18"
+                                Padding="32">
+                            <StackPanel Spacing="10"
+                                        HorizontalAlignment="Center">
+                                <TextBlock Text="书架还是空的"
+                                           HorizontalAlignment="Center"
+                                           FontSize="22"
+                                           FontWeight="Bold" />
+                                <TextBlock Text="先创建一本小说，上传封面后这里会生成完整的作品卡片。"
+                                           HorizontalAlignment="Center"
+                                           TextAlignment="Center"
+                                           MaxWidth="420"
+                                           Opacity="0.72"
+                                           TextWrapping="Wrap" />
+                                <Button Content="现在创建"
+                                        Command="{Binding OpenNewNovelDialogCommand}"
+                                        Classes="Flat Accent"
+                                        HorizontalAlignment="Center"
+                                        Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Border>
+
+                        <ItemsControl ItemsSource="{Binding Novels}"
+                                      IsVisible="{Binding HasNovels}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource SukiBackgroundBrush}"
+                                            CornerRadius="20"
+                                            Margin="0,0,0,16"
+                                            Padding="18">
+                                        <Grid ColumnDefinitions="128,*,Auto"
+                                              ColumnSpacing="20">
+                                            <Border Grid.Column="0"
+                                                    Width="128"
+                                                    Height="172"
+                                                    CornerRadius="16"
+                                                    ClipToBounds="True"
+                                                    Background="{DynamicResource SukiCardBackgroundBrush}">
+                                                <Grid>
+                                                    <Image Source="{Binding CoverImagePath, Converter={x:Static vm:FilePathToBitmapConverter.Instance}}"
+                                                           Stretch="UniformToFill" />
+                                                    <TextBlock Text="暂无封面"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"
+                                                               FontWeight="SemiBold"
+                                                               Opacity="0.76">
+                                                        <TextBlock.IsVisible>
+                                                            <Binding Path="HasCoverImage"
+                                                                     Converter="{x:Static vm:InverseBoolConverter.Instance}" />
+                                                        </TextBlock.IsVisible>
+                                                    </TextBlock>
+                                                </Grid>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1"
+                                                        Spacing="14"
+                                                        VerticalAlignment="Center">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="{Binding Title}"
+                                                               FontSize="26"
+                                                               FontWeight="Bold"
+                                                               TextWrapping="Wrap" />
+                                                    <TextBlock Text="{Binding WorldSetting}"
+                                                               TextWrapping="Wrap"
+                                                               MaxHeight="48"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Opacity="0.74" />
+                                                </StackPanel>
+
+                                                <WrapPanel Orientation="Horizontal">
+                                                    <Border Background="{DynamicResource SukiCardBackgroundBrush}"
+                                                            CornerRadius="999"
+                                                            Padding="10,6"
+                                                            Margin="0,0,10,8">
+                                                        <TextBlock Text="{Binding Genre}"
+                                                                   FontWeight="SemiBold" />
+                                                    </Border>
+                                                    <Border Background="{DynamicResource SukiCardBackgroundBrush}"
+                                                            CornerRadius="999"
+                                                            Padding="10,6"
+                                                            Margin="0,0,10,8">
+                                                        <TextBlock Text="{Binding Chapters.Count, StringFormat={}{0} 章节}" />
+                                                    </Border>
+                                                    <Border Background="{DynamicResource SukiCardBackgroundBrush}"
+                                                            CornerRadius="999"
+                                                            Padding="10,6"
+                                                            Margin="0,0,10,8">
+                                                        <TextBlock Text="{Binding UpdatedAt, StringFormat=更新于 {0:yyyy-MM-dd}}" />
+                                                    </Border>
+                                                </WrapPanel>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2"
+                                                        Spacing="10"
+                                                        Width="144"
+                                                        VerticalAlignment="Center">
+                                                <Button Content="进入创作"
+                                                        Classes="Flat Accent"
+                                                        Command="{Binding $parent[UserControl].DataContext.OpenNovelCommand}"
+                                                        CommandParameter="{Binding}" />
+                                                <Button Content="删除小说"
+                                                        Classes="Outlined"
+                                                        Command="{Binding $parent[UserControl].DataContext.ConfirmDeleteCommand}"
+                                                        CommandParameter="{Binding}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+
+        <Border IsVisible="{Binding IsLoading}"
+                Background="#22000000">
+            <ProgressBar IsIndeterminate="True"
+                         Width="280"
+                         Height="8"
+                         VerticalAlignment="Top"
+                         HorizontalAlignment="Center"
+                         Margin="0,26,0,0" />
+        </Border>
+
+        <Border IsVisible="{Binding IsDeleteDialogOpen}"
+                Background="#70000000"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource SukiBackgroundBrush}"
+                    CornerRadius="24"
+                    Padding="28"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    MaxWidth="460">
+                <StackPanel Spacing="18">
+                    <Border Width="56"
+                            Height="56"
+                            CornerRadius="18"
+                            Background="#19E53935">
+                        <PathIcon Data="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                  Foreground="#E53935"
+                                  Width="24"
+                                  Height="24"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="删除小说"
+                                   FontSize="26"
+                                   FontWeight="Bold" />
+                        <TextBlock Text="这会同时删除作品记录和已保存的封面文件，操作不可撤销。"
+                                   TextWrapping="Wrap"
+                                   Opacity="0.74" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="12"
+                                HorizontalAlignment="Right">
+                        <Button Content="取消"
+                                Command="{Binding CancelDialogCommand}"
+                                Classes="Outlined" />
+                        <Button Content="确认删除"
+                                Command="{Binding DeleteNovelCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

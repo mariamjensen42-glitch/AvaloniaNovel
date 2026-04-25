@@ -1,0 +1,115 @@
+<sukiUi:SukiWindow xmlns="https://github.com/avaloniaui"
+                   xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:vm="using:AvaloniaNovel.ViewModels"
+                   xmlns:views="using:AvaloniaNovel.Views"
+                   x:Class="AvaloniaNovel.Views.MainWindow"
+                   x:DataType="vm:MainWindowViewModel"
+                   Icon="/Assets/avalonia-logo.ico"
+                   Title="AINovelFlow - AI 网文创作工具"
+                   Width="1280"
+                   Height="800"
+                   MinWidth="1180"
+                   MinHeight="760"
+                   WindowStartupLocation="CenterScreen"
+                   BackgroundStyle="Gradient">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <sukiUi:SukiWindow.LogoContent>
+        <Border Background="{DynamicResource SukiAccentColorBrush}"
+                CornerRadius="10"
+                Padding="10,6"
+                Margin="8,0,0,0">
+            <TextBlock Text="AI"
+                       FontWeight="Bold"
+                       Foreground="White" />
+        </Border>
+    </sukiUi:SukiWindow.LogoContent>
+
+    <sukiUi:SukiWindow.RightWindowTitleBarControls>
+        <Border Background="#1AFFFFFF"
+                CornerRadius="999"
+                Padding="12,5"
+                Margin="0,0,16,0"
+                VerticalAlignment="Center">
+            <TextBlock Text="{Binding ActiveSectionTitle}"
+                       FontSize="12"
+                       FontWeight="SemiBold" />
+        </Border>
+    </sukiUi:SukiWindow.RightWindowTitleBarControls>
+
+    <sukiUi:SukiWindow.Hosts>
+        <sukiUi:SukiDialogHost Manager="{Binding DialogManager}" />
+    </sukiUi:SukiWindow.Hosts>
+
+    <sukiUi:SukiSideMenu IsSearchEnabled="False" x:Name="SideMenu">
+        <sukiUi:SukiSideMenu.HeaderContent>
+            <StackPanel Spacing="12"
+                        Margin="14,18,14,8">
+                <Border Background="{DynamicResource SukiCardBackgroundBrush}"
+                        CornerRadius="18"
+                        Padding="16">
+                    <StackPanel Spacing="12">
+                        <Border Width="44"
+                                Height="44"
+                                CornerRadius="14"
+                                Background="{DynamicResource SukiAccentColorBrush}">
+                            <TextBlock Text="AI"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       Foreground="White" />
+                        </Border>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="{Binding AppTitle}"
+                                       FontSize="20"
+                                       FontWeight="Bold" />
+                            <TextBlock Text="{Binding AppTagline}"
+                                       Opacity="0.72"
+                                       FontSize="12" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </sukiUi:SukiSideMenu.HeaderContent>
+
+        <sukiUi:SukiSideMenu.Items>
+            <sukiUi:SukiSideMenuItem Header="书架"
+                                     IsSelected="True"
+                                     x:Name="BookshelfMenuItem">
+                <sukiUi:SukiSideMenuItem.Icon>
+                    <PathIcon
+                        Data="M19,11H5M19,11C20.1046,11 21,11.8954 21,13V19C21,20.1046 20.1046,21 19,21H5C3.89543,21 3,20.1046 3,19V13C3,11.8954 3.89543,11 5,11M19,11V9C19,7.8954 18.1046,7 17,7M5,11V9C5,7.8954 5.89543,7 7,7M7,7V5C7,3.8954 7.89543,3 9,3H15C16.1046,3 17,3.8954 17,5V7M7,7H17" />
+                </sukiUi:SukiSideMenuItem.Icon>
+                <sukiUi:SukiSideMenuItem.PageContent>
+                    <views:BookshelfView DataContext="{Binding BookshelfViewModel}" />
+                </sukiUi:SukiSideMenuItem.PageContent>
+            </sukiUi:SukiSideMenuItem>
+
+            <sukiUi:SukiSideMenuItem Header="创作">
+                <sukiUi:SukiSideMenuItem.Icon>
+                    <PathIcon Data="M12 19l7-7 3 3-7 7-3-3z" />
+                </sukiUi:SukiSideMenuItem.Icon>
+                <sukiUi:SukiSideMenuItem.PageContent>
+                    <views:CreateView DataContext="{Binding CreateViewModel}" />
+                </sukiUi:SukiSideMenuItem.PageContent>
+            </sukiUi:SukiSideMenuItem>
+
+            <sukiUi:SukiSideMenuItem Header="设置">
+                <sukiUi:SukiSideMenuItem.Icon>
+                    <PathIcon
+                        Data="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" />
+                </sukiUi:SukiSideMenuItem.Icon>
+                <sukiUi:SukiSideMenuItem.PageContent>
+                    <views:SettingsView DataContext="{Binding SettingsViewModel}" />
+                </sukiUi:SukiSideMenuItem.PageContent>
+            </sukiUi:SukiSideMenuItem>
+        </sukiUi:SukiSideMenu.Items>
+    </sukiUi:SukiSideMenu>
+</sukiUi:SukiWindow>
+
