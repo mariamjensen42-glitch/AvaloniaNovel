@@ -3,6 +3,7 @@ using System;
 using AvaloniaNovel.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AvaloniaNovel.Migrations
 {
     [DbContext(typeof(NovelDbContext))]
-    partial class NovelDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260429203520_AddChapterVersion")]
+    partial class AddChapterVersion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.26");
