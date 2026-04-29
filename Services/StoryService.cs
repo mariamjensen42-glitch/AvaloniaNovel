@@ -54,6 +54,25 @@ JSON 格式，字段：title（章节标题），summary（章节概要）";
 ## 输出
 直接输出章节正文，不需要额外格式。";
 
+    private const string DefaultRewritePrompt = @"## 任务
+根据用户的新指令，修改当前章节内容。
+
+## 输入
+- 当前章节标题：{{chapterTitle}}
+- 当前章节内容：{{currentContent}}
+- 用户指令：{{instruction}}
+- 题材：{{genre}}
+- 世界观：{{worldSetting}}
+
+## 要求
+1. 严格按照用户指令调整剧情
+2. 保持原有章节标题和整体结构
+3. 调整后的内容应合理、流畅
+4. 字数：2000-5000 字
+
+## 输出
+直接输出修改后的章节正文，不需要额外格式。";
+
     // ── 模板变量替换 ──────────────────────────────────────────────────
     private static string RenderTemplate(string template, Dictionary<string, string> variables)
     {
@@ -100,6 +119,30 @@ JSON 格式，字段：title（章节标题），summary（章节概要）";
     {
         var prompt = BuildChapterPrompt(chapterTitle, chapterSummary,
             genre, worldSetting, previousSummary, chapterTemplate);
+        return await _llmService.InvokeAsync(prompt, systemPrompt);
+    }
+
+    // ── 章节重写 ──────────────────────────────────────────────────────
+    public async Task<string> RewriteChapterAsync(
+        string currentContent,
+        string instruction,
+        string chapterTitle,
+        string genre, string worldSetting,
+        string? rewriteTemplate = null, string? systemPrompt = null)
+    {
+        var template = string.IsNullOrWhiteSpace(rewriteTemplate)
+            ? DefaultRewritePrompt
+            : rewriteTemplate;
+
+        var prompt = RenderTemplate(template, new Dictionary<string, string>
+        {
+            ["chapterTitle"] = chapterTitle,
+            ["currentContent"] = currentContent,
+            ["instruction"] = instruction,
+            ["genre"] = genre,
+            ["worldSetting"] = worldSetting
+        });
+
         return await _llmService.InvokeAsync(prompt, systemPrompt);
     }
 
