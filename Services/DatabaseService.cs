@@ -214,6 +214,69 @@ public class DatabaseService
         await db.SaveChangesAsync();
     }
 
+    // ── ChapterVersion 版本管理 ──────────────────────────────────────────
+
+    private readonly NovelDbContext _context;
+
+    public DatabaseService()
+    {
+        _context = new NovelDbContext();
+    }
+
+    // 获取章节所有版本（按时间倒序）
+    public async Task<List<ChapterVersion>> GetVersionsAsync(int chapterId)
+    {
+        return await _context.ChapterVersions
+            .Where(v => v.ChapterId == chapterId)
+            .OrderByDescending(v => v.CreatedAt)
+            .ToListAsync();
+    }
+
+    // 保存新版本
+    public async Task<ChapterVersion> AddVersionAsync(ChapterVersion version)
+    {
+        version.CreatedAt = DateTime.UtcNow;
+        _context.ChapterVersions.Add(version);
+        await _context.SaveChangesAsync();
+        return version;
+    }
+
+    // 获取章节最新版本
+    public async Task<ChapterVersion?> GetLatestVersionAsync(int chapterId)
+    {
+        return await _context.ChapterVersions
+            .Where(v => v.ChapterId == chapterId)
+            .OrderByDescending(v => v.CreatedAt)
+            .FirstOrDefaultAsync();
+    }
+
+    // 清理旧自动保存版本（每个章节保留最近 20 个 auto-save）
+    public async Task DeleteOldVersionsAsync(int chapterId)
+    {
+        var oldVersions = await _context.ChapterVersions
+            .Where(v => v.ChapterId == chapterId && v.Trigger == "auto-save")
+            .OrderByDescending(v => v.CreatedAt)
+            .Skip(20)
+            .ToListAsync();
+
+        if (oldVersions.Count > 0)
+        {
+            _context.ChapterVersions.RemoveRange(oldVersions);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    // 更新章节内容（用于回滚）
+    public async Task UpdateChapterContentAsync(int chapterId, string content)
+    {
+        var chapter = await _context.Chapters.FindAsync(chapterId);
+        if (chapter != null)
+        {
+            chapter.Content = content;
+            await _context.SaveChangesAsync();
+        }
+    }
+
     public static List<PromptTemplate> GetBuiltInTemplates(DateTime now) => new()
     {
         // ── 系统人设模板 ─────────────────────────────────────────────────
