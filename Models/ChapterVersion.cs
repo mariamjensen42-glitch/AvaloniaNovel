@@ -9,7 +9,7 @@ public class ChapterVersion
     public string Content { get; set; } = string.Empty;
     public int WordCount { get; set; }
     public string Trigger { get; set; } = "auto-save"; // auto-save / manual-save / rewrite
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Chapter? Chapter { get; set; }
 }

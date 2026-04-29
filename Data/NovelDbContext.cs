@@ -11,6 +11,7 @@ public class NovelDbContext : DbContext
     public DbSet<Chapter> Chapters => Set<Chapter>();
     public DbSet<AppSettings> AppSettings => Set<AppSettings>();
     public DbSet<PromptTemplate> PromptTemplates => Set<PromptTemplate>();
+    public DbSet<ChapterVersion> ChapterVersions => Set<ChapterVersion>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
@@ -56,6 +57,15 @@ public class NovelDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             entity.Property(e => e.Content).IsRequired();
             entity.HasIndex(e => e.Type);
+        });
+
+        modelBuilder.Entity<ChapterVersion>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Chapter)
+                  .WithMany(c => c.Versions)
+                  .HasForeignKey(e => e.ChapterId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
