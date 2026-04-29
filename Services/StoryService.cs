@@ -128,6 +128,7 @@ JSON 格式，字段：title（章节标题），summary（章节概要）";
         string instruction,
         string chapterTitle,
         string genre, string worldSetting,
+        string previousSummary = "",
         string? rewriteTemplate = null, string? systemPrompt = null)
     {
         var template = string.IsNullOrWhiteSpace(rewriteTemplate)
@@ -139,6 +140,7 @@ JSON 格式，字段：title（章节标题），summary（章节概要）";
             ["chapterTitle"] = chapterTitle,
             ["currentContent"] = currentContent,
             ["instruction"] = instruction,
+            ["previousSummary"] = previousSummary,
             ["genre"] = genre,
             ["worldSetting"] = worldSetting
         });
