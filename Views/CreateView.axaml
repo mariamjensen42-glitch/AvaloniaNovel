@@ -1,13 +1,14 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:AvaloniaNovel.ViewModels"
+             xmlns:models="using:AvaloniaNovel.Models"
              xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia"
              x:Class="AvaloniaNovel.Views.CreateView"
              x:DataType="vm:CreateViewModel">
 
     <DockPanel>
         <!-- ── 顶部工具栏 ───────────────────────────────────────────── -->
-        <Border DockPanel.Dock="Top" Background="{DynamicResource SukiCardBackgroundBrush}"
+        <Border DockPanel.Dock="Top" Background="{DynamicResource SystemChromeMediumColor}"
                 Padding="16,12" Margin="0">
             <Grid RowDefinitions="Auto,Auto,Auto,Auto">
                 <!-- 标题 + 按钮行 -->
@@ -16,20 +17,51 @@
                         <TextBlock Text="{Binding CurrentNovel.Title, FallbackValue='未选择小说'}"
                                    FontSize="24" FontWeight="Bold" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding SelectedChapter.Order, StringFormat={}第 {0} 章}"
-                                   FontSize="16" Foreground="{DynamicResource SukiTextColorBrush}"
+                                   FontSize="16" Foreground="{DynamicResource SystemAccentColor}"
                                    VerticalAlignment="Center" Margin="8,0,0,0"
                                    IsVisible="{Binding SelectedChapter, Converter={x:Static ObjectConverters.IsNotNull}}" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                         <Button Content="生成大纲" Command="{Binding GenerateOutlineCommand}"
-                                IsEnabled="{Binding !IsWriting}" Classes="Flat" />
+                                IsEnabled="{Binding !IsWriting}"
+                                IsVisible="{Binding !IsEditing}" />
                         <Button Content="开始写作" Command="{Binding StartWritingCommand}"
-                                IsEnabled="{Binding !IsWriting}" />
+                                IsEnabled="{Binding !IsWriting}"
+                                IsVisible="{Binding !IsEditing}" />
                         <Button Content="停止" Command="{Binding StopWritingCommand}"
-                                IsEnabled="{Binding IsWriting}" Classes="Flat" />
-                        <Button Content="导出" Command="{Binding ExportCommand}" Classes="Flat" />
+                                IsEnabled="{Binding IsWriting}"
+                                IsVisible="{Binding !IsEditing}" />
+                        <Button Content="🔄剧情干预" Command="{Binding OpenRewriteDialogCommand}"
+                                IsEnabled="{Binding !IsWriting}"
+                                IsVisible="{Binding !IsEditing}" />
+                        <!-- 非编辑模式：显示「✏️编辑」 -->
+                        <Button Content="✏️ 编辑" Command="{Binding EnterEditModeCommand}"
+                                IsEnabled="{Binding CanEdit}"
+                                IsVisible="{Binding !IsEditing}" />
+                        <!-- 编辑模式：显示「保存」和「取消」 -->
+                        <Button Content="✅ 保存" Command="{Binding SaveEditCommand}"
+                                IsVisible="{Binding IsEditing}" />
+                        <Button Content="❌ 取消" Command="{Binding CancelEditCommand}"
+                                IsVisible="{Binding IsEditing}" />
+                        <Button Content="导出" Command="{Binding ExportCommand}"
+                                IsVisible="{Binding !IsEditing}" />
+                        <Button Content="💾 备份" Command="{Binding CreateManualSnapshotCommand}"
+                                IsVisible="{Binding !IsEditing}"
+                                IsEnabled="{Binding CanEdit}"
+                                ToolTip.Tip="手动备份当前章节内容" />
+                        <Button Content="📋 历史" Command="{Binding OpenHistoryCommand}"
+                                IsVisible="{Binding !IsEditing}"
+                                IsEnabled="{Binding CanEdit}"
+                                ToolTip.Tip="查看历史版本，一键回退" />
+                        <Button Content="📄 摘要" Command="{Binding GenerateSummaryCommand}"
+                                IsVisible="{Binding !IsEditing}"
+                                IsEnabled="{Binding CanGenerateSummary}"
+                                ToolTip.Tip="AI 生成当前章节的正文摘要" />
+                        <Button Content="📊 统计" Command="{Binding ToggleStatsPanelCommand}"
+                                IsVisible="{Binding !IsEditing}"
+                                ToolTip.Tip="查看全书字数统计和写作进度" />
                         <Button Content="📝模板" Command="{Binding ToggleTemplatePanelCommand}"
-                                Classes="Flat" />
+                                IsVisible="{Binding !IsEditing}" />
                     </StackPanel>
                 </Grid>
 
@@ -42,18 +74,18 @@
 
                 <!-- 模板选择面板（可折叠） -->
                 <Border Grid.Row="2" IsVisible="{Binding ShowTemplatePanel}"
-                        Background="{DynamicResource SukiBackgroundBrush}"
-                        CornerRadius="10" Padding="14" Margin="8,0,8,8">
+                        Background="{DynamicResource SystemChromeLowColor}"
+                        CornerRadius="8" Padding="14" Margin="8,0,8,8">
                     <StackPanel Spacing="10">
                         <TextBlock Text="提示词模板选择" FontSize="13" FontWeight="SemiBold" Opacity="0.8" />
-                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                        <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="8">
                             <!-- 系统人设 -->
                             <StackPanel Grid.Column="0" Spacing="4">
                                 <TextBlock Text="系统人设" FontSize="12" Opacity="0.7" />
                                 <ComboBox ItemsSource="{Binding SystemTemplates}"
                                           SelectedItem="{Binding SelectedSystemTemplate}"
                                           HorizontalAlignment="Stretch"
-                                          MinWidth="120">
+                                          MinWidth="100">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Name}" />
@@ -67,7 +99,7 @@
                                 <ComboBox ItemsSource="{Binding OutlineTemplates}"
                                           SelectedItem="{Binding SelectedOutlineTemplate}"
                                           HorizontalAlignment="Stretch"
-                                          MinWidth="120">
+                                          MinWidth="100">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Name}" />
@@ -81,7 +113,35 @@
                                 <ComboBox ItemsSource="{Binding ChapterTemplates}"
                                           SelectedItem="{Binding SelectedChapterTemplate}"
                                           HorizontalAlignment="Stretch"
-                                          MinWidth="120">
+                                          MinWidth="100">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <!-- 重写模板 -->
+                            <StackPanel Grid.Column="3" Spacing="4">
+                                <TextBlock Text="剧情干预" FontSize="12" Opacity="0.7" />
+                                <ComboBox ItemsSource="{Binding RewriteTemplates}"
+                                          SelectedItem="{Binding SelectedRewriteTemplate}"
+                                          HorizontalAlignment="Stretch"
+                                          MinWidth="100">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <!-- 摘要模板 -->
+                            <StackPanel Grid.Column="4" Spacing="4">
+                                <TextBlock Text="摘要生成" FontSize="12" Opacity="0.7" />
+                                <ComboBox ItemsSource="{Binding SummaryTemplates}"
+                                          SelectedItem="{Binding SelectedSummaryTemplate}"
+                                          HorizontalAlignment="Stretch"
+                                          MinWidth="100">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Name}" />
@@ -97,11 +157,11 @@
                 <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8" Margin="8,0,8,0"
                             IsVisible="{Binding IsStreaming}">
                     <TextBlock Text="✍️ 正在生成..." FontSize="12"
-                               Foreground="{DynamicResource SukiAccentColorBrush}"
+                               Foreground="{DynamicResource SystemAccentColor}"
                                VerticalAlignment="Center" />
                     <TextBlock Text="{Binding CurrentWordCount, StringFormat={}{0} 字}"
                                FontSize="12" FontWeight="SemiBold"
-                               Foreground="{DynamicResource SukiAccentColorBrush}"
+                               Foreground="{DynamicResource SystemAccentColor}"
                                VerticalAlignment="Center" />
                 </StackPanel>
             </Grid>
@@ -109,41 +169,128 @@
 
         <!-- ── 底部状态栏 ───────────────────────────────────────────── -->
         <Border IsVisible="{Binding StatusMessage, Converter={x:Static vm:StringNullOrEmptyConverter.Instance}}"
-                DockPanel.Dock="Bottom" Background="{DynamicResource SukiCardBackgroundBrush}"
+                DockPanel.Dock="Bottom" Background="{DynamicResource SystemChromeMediumColor}"
                 Padding="16,8">
             <TextBlock Text="{Binding StatusMessage}"
-                       Foreground="{DynamicResource SukiAccentColorBrush}"
+                       Foreground="{DynamicResource SystemAccentColor}"
                        HorizontalAlignment="Center" />
         </Border>
 
         <!-- ── 主体：章节列表 + 内容区 ─────────────────────────────── -->
         <Grid ColumnDefinitions="320,*">
-            <!-- 章节列表 -->
+            <!-- 章节列表 + 统计概览 -->
             <Border Grid.Column="0" Margin="12" CornerRadius="8"
-                    Background="{DynamicResource SukiCardBackgroundBrush}">
+                    Background="{DynamicResource SystemChromeMediumColor}">
                 <DockPanel Margin="12">
                     <TextBlock DockPanel.Dock="Top" Text="章节列表" FontSize="16" FontWeight="SemiBold"
                                Margin="0,0,0,12" />
+
+                    <!-- 统计概览卡片（可折叠） -->
+                    <Border DockPanel.Dock="Top" IsVisible="{Binding ShowStatsPanel}"
+                            Background="{DynamicResource SystemChromeLowColor}"
+                            CornerRadius="8" Padding="14" Margin="0,0,0,12">
+                        <StackPanel Spacing="10">
+                            <!-- 进度条 -->
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                <TextBlock Grid.Column="0" Text="写作进度" FontSize="12"
+                                           VerticalAlignment="Center" Opacity="0.7" />
+                                <ProgressBar Grid.Column="1"
+                                             Value="{Binding CompletionPercentage}"
+                                             Minimum="0" Maximum="100"
+                                             Height="14" />
+                            </Grid>
+                            <TextBlock FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource SystemAccentColor}"
+                                       HorizontalAlignment="Center">
+                                <Run Text="{Binding CompletionPercentage, Mode=OneWay}" />
+                                <Run Text="% 完成" />
+                            </TextBlock>
+
+                            <!-- 三列统计 -->
+                            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                                <StackPanel Grid.Column="0" Spacing="2" HorizontalAlignment="Center">
+                                    <TextBlock Text="总字数" FontSize="10" Opacity="0.5"
+                                               HorizontalAlignment="Center" />
+                                    <TextBlock FontSize="16" FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               Foreground="{DynamicResource SystemAccentColor}">
+                                        <Run Text="{Binding TotalWordCount, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="2" HorizontalAlignment="Center">
+                                    <TextBlock Text="已完成" FontSize="10" Opacity="0.5"
+                                               HorizontalAlignment="Center" />
+                                    <TextBlock FontSize="16" FontWeight="Bold"
+                                               HorizontalAlignment="Center">
+                                        <Run Text="{Binding CompletedChapterCount, Mode=OneWay}" />
+                                        <Run Text="/" />
+                                        <Run Text="{Binding TotalChapterCount, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="2" HorizontalAlignment="Center">
+                                    <TextBlock Text="待写" FontSize="10" Opacity="0.5"
+                                               HorizontalAlignment="Center" />
+                                    <TextBlock FontSize="16" FontWeight="Bold"
+                                               HorizontalAlignment="Center">
+                                        <Run Text="{Binding TotalChapterCount, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- 平均字数 -->
+                            <Border Background="{DynamicResource SystemChromeMediumColor}"
+                                    CornerRadius="4" Padding="8,4" HorizontalAlignment="Center">
+                                <TextBlock FontSize="11" Opacity="0.7">
+                                    <Run Text="平均每章 " />
+                                    <Run Text="{Binding TotalWordCount, Mode=OneWay}" />
+                                    <Run Text=" 字" />
+                                </TextBlock>
+                            </Border>
+                        </StackPanel>
+                    </Border>
                     <ListBox ItemsSource="{Binding Chapters}"
                              SelectedItem="{Binding SelectedChapter}"
                              Background="Transparent">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="{DynamicResource SukiBackgroundBrush}"
+                                <Border Background="{DynamicResource SystemChromeLowColor}"
                                         CornerRadius="6" Margin="0,0,0,6" Padding="12,10">
-                                    <Grid RowDefinitions="Auto,Auto,Auto">
+                                    <Grid RowDefinitions="Auto,Auto,Auto,Auto">
                                         <TextBlock Grid.Row="0" Text="{Binding Title}" FontWeight="SemiBold"
                                                    TextWrapping="Wrap" />
                                         <TextBlock Grid.Row="1" Text="{Binding Summary}"
-                                                   Foreground="{DynamicResource SukiTextColorBrush}"
+                                                   Opacity="0.6"
                                                    TextWrapping="Wrap" Margin="0,4,0,0"
                                                    MaxHeight="36" TextTrimming="CharacterEllipsis"
                                                    FontSize="12" />
-                                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
-                                            <Border Background="{DynamicResource SukiAccentColorBrush}"
+                                        <!-- 正文摘要（AI 生成后显示） -->
+                                        <TextBlock Grid.Row="2"
+                                                   Text="{Binding ContentSummary}"
+                                                   Foreground="{DynamicResource SystemAccentColor}"
+                                                   TextWrapping="Wrap" Margin="0,4,0,0"
+                                                   MaxHeight="48" TextTrimming="CharacterEllipsis"
+                                                   FontSize="11" Opacity="0.85"
+                                                   IsVisible="{Binding ContentSummary, Converter={x:Static vm:StringNullOrEmptyConverter.Instance}}" />
+                                        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
+                                            <Border Background="{DynamicResource SystemAccentColor}"
                                                     CornerRadius="3" Padding="6,2">
                                                 <TextBlock Text="{Binding Status}" FontSize="10"
                                                            Foreground="White" />
+                                            </Border>
+                                            <!-- 摘要标记 -->
+                                            <Border Background="#2196F3"
+                                                    CornerRadius="3" Padding="6,2"
+                                                    IsVisible="{Binding ContentSummary, Converter={x:Static vm:StringNullOrEmptyConverter.Instance}}">
+                                                <TextBlock Text="已摘要" FontSize="10" Foreground="White" />
+                                            </Border>
+                                            <!-- 字数 -->
+                                            <Border Background="{DynamicResource SystemChromeLowColor}"
+                                                    CornerRadius="3" Padding="6,2"
+                                                    IsVisible="{Binding Content, Converter={x:Static vm:StringNullOrEmptyConverter.Instance}}">
+                                                <TextBlock FontSize="10" Opacity="0.7">
+                                                    <Run Text="{Binding Content.Length, Mode=OneWay}" />
+                                                    <Run Text="字" />
+                                                </TextBlock>
                                             </Border>
                                         </StackPanel>
                                     </Grid>
@@ -154,23 +301,228 @@
                 </DockPanel>
             </Border>
 
-            <!-- 内容区：Markdown 实时渲染 -->
+            <!-- 内容区：编辑模式 / Markdown 渲染 双模切换 -->
             <Border Grid.Column="1" Margin="0,12,12,12" CornerRadius="8"
-                    Background="{DynamicResource SukiCardBackgroundBrush}">
-                <ScrollViewer Name="ContentScrollViewer" Padding="20">
-                    <StackPanel Spacing="16">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="{Binding SelectedChapter.Title, FallbackValue='选择章节开始创作'}"
-                                       FontSize="22" FontWeight="Bold" TextWrapping="Wrap" />
-                            <Border Height="1" Background="{DynamicResource SukiTextColorBrush}"
-                                    Opacity="0.2" Margin="0,4" />
+                    Background="{DynamicResource SystemChromeMediumColor}">
+                <Grid RowDefinitions="Auto,*">
+                    <!-- 编辑模式提示栏 -->
+                    <Border Grid.Row="0" IsVisible="{Binding IsEditing}"
+                            Background="{DynamicResource SystemAccentColor}"
+                            CornerRadius="8,8,0,0" Padding="16,8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="✏️ 编辑模式" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="White" VerticalAlignment="Center" />
+                            <TextBlock Text="— 直接修改下方文本，完成后点击「✅ 保存」"
+                                       FontSize="12" Foreground="White" Opacity="0.85"
+                                       VerticalAlignment="Center" />
                         </StackPanel>
+                    </Border>
 
-                        <!-- Markdown 渲染器：通过 code-behind 绑定 MarkdownBuilder -->
-                        <md:MarkdownRenderer Name="ContentRenderer" />
-                    </StackPanel>
-                </ScrollViewer>
+                    <!-- 编辑器 TextBox（编辑模式） -->
+                    <TextBox Grid.Row="1"
+                             IsVisible="{Binding IsEditing}"
+                             Text="{Binding EditingContent, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             FontSize="15"
+                             FontFamily="Consolas, Cascadia Code, 等线, monospace"
+                             Padding="20"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             CornerRadius="0,0,8,8"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+
+                    <!-- Markdown 渲染（非编辑模式） -->
+                    <ScrollViewer Grid.Row="1"
+                                  Name="ContentScrollViewer"
+                                  Padding="20"
+                                  IsVisible="{Binding !IsEditing}">
+                        <StackPanel Spacing="16">
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="{Binding SelectedChapter.Title, FallbackValue='选择章节开始创作'}"
+                                               FontSize="22" FontWeight="Bold" TextWrapping="Wrap" />
+                                    <!-- 当前章节字数 -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                                                VerticalAlignment="Center"
+                                                IsVisible="{Binding SelectedChapter, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <TextBlock Text="{Binding SelectedChapterWordCount, StringFormat={}{0} 字}"
+                                                   FontSize="13" Opacity="0.6"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+                                <Border Height="1" Background="{DynamicResource SystemBaseMediumLowColor}"
+                                        Opacity="0.3" Margin="0,4" />
+                            </StackPanel>
+
+                            <!-- 正文摘要信息栏（AI 生成后显示） -->
+                            <Border IsVisible="{Binding SelectedChapter.ContentSummary, Converter={x:Static vm:StringNullOrEmptyConverter.Instance}}"
+                                    Background="{DynamicResource SystemChromeLowColor}"
+                                    CornerRadius="8" Padding="14,10" Opacity="0.9">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="📝 正文摘要" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource SystemAccentColor}" />
+                                    <TextBlock Text="{Binding SelectedChapter.ContentSummary}"
+                                               TextWrapping="Wrap" FontSize="12"
+                                               Opacity="0.85" MaxHeight="80"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="此摘要用于后续章节写作的上下文参考"
+                                               FontSize="10" Opacity="0.5" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Markdown 渲染器：通过 code-behind 绑定 MarkdownBuilder -->
+                            <md:MarkdownRenderer Name="ContentRenderer" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
             </Border>
         </Grid>
+
+        <!-- ── 剧情干预对话框（覆盖层） ──────────────────────────────── -->
+        <Panel IsVisible="{Binding ShowRewriteDialog}"
+               ZIndex="100">
+            <!-- 半透明遮罩 -->
+            <Border Background="#80000000" />
+            <!-- 对话框主体 -->
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Width="560" MaxHeight="420"
+                    Background="{DynamicResource SystemChromeMediumColor}"
+                    CornerRadius="12" Padding="28" BoxShadow="0 8 24 0 #40000000">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="🔄 剧情干预" FontSize="20" FontWeight="Bold" />
+                    <TextBlock TextWrapping="Wrap" Opacity="0.8" FontSize="13">
+                        <Run Text="对当前章节 " />
+                        <Run Text="{Binding SelectedChapter.Title, Mode=OneWay}" FontWeight="SemiBold" />
+                        <Run Text=" 进行干预，AI 将根据你的指令重写这一章。" />
+                    </TextBlock>
+
+                    <!-- 重写模板选择 -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="重写方式" FontSize="12" Opacity="0.7" />
+                        <ComboBox ItemsSource="{Binding RewriteTemplates}"
+                                  SelectedItem="{Binding SelectedRewriteTemplate}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- 干预指令输入 -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="干预指令" FontSize="12" Opacity="0.7" />
+                        <TextBox Text="{Binding RewriteInstruction, UpdateSourceTrigger=PropertyChanged}"
+                                 Watermark="例如：让主角在关键时刻选择反抗而不是妥协..."
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Height="120"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                    </StackPanel>
+
+                    <!-- 按钮 -->
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                   Text="重写过程中可随时点击停止" FontSize="11" Opacity="0.5" />
+                        <Button Grid.Column="1" Content="取消"
+                                Command="{Binding CancelRewriteCommand}" />
+                        <Button Grid.Column="2" Content="开始重写"
+                                Command="{Binding ConfirmRewriteCommand}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Panel>
+
+        <!-- ── 历史版本侧边面板（右侧抽屉覆盖层） ──────────────────────── -->
+        <Panel IsVisible="{Binding ShowHistoryPanel}" ZIndex="90">
+            <!-- 半透明遮罩，点击关闭 -->
+            <Border Background="#60000000" PointerPressed="OnOverlayPointerPressed" />
+            <!-- 右侧抽屉 -->
+            <Border HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                    Width="480"
+                    Background="{DynamicResource SystemChromeMediumColor}"
+                    BoxShadow="-4 0 20 0 #40000000">
+                <Grid RowDefinitions="Auto,*,Auto" Margin="0">
+                    <!-- 头部 -->
+                    <Border Grid.Row="0" Padding="20,16"
+                            Background="{DynamicResource SystemChromeLowColor}">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="📋 写作历史" FontSize="18" FontWeight="Bold" />
+                                <TextBlock FontSize="12" Opacity="0.6">
+                                    <Run Text="{Binding SelectedChapter.Title, Mode=OneWay}" />
+                                    <Run Text=" · " />
+                                    <Run Text="{Binding Snapshots.Count, Mode=OneWay}" />
+                                    <Run Text=" 个历史版本" />
+                                </TextBlock>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="✕"
+                                    Command="{Binding CloseHistoryCommand}"
+                                    VerticalAlignment="Top" />
+                        </Grid>
+                    </Border>
+
+                    <!-- 快照列表 + 预览 -->
+                    <Grid Grid.Row="1" ColumnDefinitions="200,*">
+                        <!-- 左：快照列表 -->
+                        <Border Grid.Column="0"
+                                BorderBrush="{DynamicResource SystemBaseMediumLowColor}"
+                                BorderThickness="0,0,1,0" Opacity="0.3">
+                            <ListBox ItemsSource="{Binding Snapshots}"
+                                     SelectedItem="{Binding SelectedSnapshot}"
+                                     Background="Transparent">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ChapterSnapshot">
+                                        <Border Padding="12,10" Margin="0,0,0,2"
+                                                Background="{DynamicResource SystemChromeLowColor}"
+                                                CornerRadius="6">
+                                            <StackPanel Spacing="3">
+                                                <TextBlock Text="{Binding Reason}"
+                                                           FontSize="13" FontWeight="SemiBold"
+                                                           TextWrapping="Wrap" />
+                                                <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:MM-dd HH:mm:ss}}"
+                                                           FontSize="11" Opacity="0.6" />
+                                                <TextBlock FontSize="11" Opacity="0.5">
+                                                    <Run Text="{Binding Content.Length, Mode=OneWay}" />
+                                                    <Run Text=" 字" />
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+
+                        <!-- 右：预览区 -->
+                        <ScrollViewer Grid.Column="1" Padding="16"
+                                      VerticalScrollBarVisibility="Auto">
+                            <TextBlock Text="{Binding SnapshotPreview}"
+                                       TextWrapping="Wrap"
+                                       FontSize="13"
+                                       Opacity="0.85"
+                                       IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                        </ScrollViewer>
+                    </Grid>
+
+                    <!-- 底部按钮栏 -->
+                    <Border Grid.Row="2" Padding="16,12"
+                            Background="{DynamicResource SystemChromeLowColor}">
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                                       FontSize="12" Opacity="0.6" TextWrapping="Wrap"
+                                       Text="回退后当前内容将自动备份" />
+                            <Button Grid.Column="1" Content="关闭"
+                                    Command="{Binding CloseHistoryCommand}" />
+                            <Button Grid.Column="2" Content="↩ 回退到此版本"
+                                    Command="{Binding RestoreSnapshotCommand}"
+                                    IsEnabled="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Panel>
     </DockPanel>
 </UserControl>
