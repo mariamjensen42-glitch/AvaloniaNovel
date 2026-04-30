@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -89,6 +90,19 @@ public partial class CreateViewModel : ViewModelBase
     [ObservableProperty]
     private bool _showTemplatePanel;
 
+    // ── 版本历史 ─────────────────────────────────────────────────────
+    [ObservableProperty]
+    private ObservableCollection<ChapterVersion> _versions = new();
+
+    // ── 自动保存 ─────────────────────────────────────────────────────
+    private System.Timers.Timer? _autoSaveTimer;
+    private int _wordsSinceLastSave = 0;
+    private const int AutoSaveWordThreshold = 500; // 每 500 字自动保存
+    private const int AutoSaveIntervalMs = 60000;   // 每 60 秒自动保存
+
+    [ObservableProperty]
+    private string _instructionText = string.Empty;
+
     public CreateViewModel()
     {
         _dbService = new DatabaseService();
@@ -129,6 +143,8 @@ public partial class CreateViewModel : ViewModelBase
     partial void OnSelectedChapterChanged(Chapter? value)
     {
         ChapterMarkdown = value?.Content ?? string.Empty;
+        if (value != null)
+            _ = LoadVersionsAsync(value.Id);
     }
 
     [RelayCommand]
@@ -233,6 +249,8 @@ public partial class CreateViewModel : ViewModelBase
         StreamingBuilder.Clear();
         CurrentWordCount = 0;
         IsStreaming = true;
+        _wordsSinceLastSave = 0;
+        StartAutoSaveTimer();
 
         var previousSummary = index > 0 ? Chapters[index - 1].Summary : string.Empty;
 
@@ -243,6 +261,12 @@ public partial class CreateViewModel : ViewModelBase
             {
                 StreamingBuilder.Append(chunk);
                 CurrentWordCount += chunk.Length;
+                _wordsSinceLastSave += chunk.Length;
+                if (_wordsSinceLastSave >= AutoSaveWordThreshold)
+                {
+                    _ = SaveVersionAsync("auto-save");
+                    _wordsSinceLastSave = 0;
+                }
                 StatusMessage = $"正在写作: {chapter.Title}（{CurrentWordCount} 字）";
                 StreamingContentUpdated?.Invoke();
             });
@@ -281,6 +305,7 @@ public partial class CreateViewModel : ViewModelBase
             ChapterMarkdown = fullContent;
             CurrentWordCount = fullContent.Length;
             StatusMessage = $"{chapter.Title} 写作完成（共 {CurrentWordCount} 字）";
+            StopAutoSaveTimer();
         });
     }
 
@@ -342,5 +367,130 @@ public partial class CreateViewModel : ViewModelBase
     {
         if (index >= 0 && index < Chapters.Count)
             Chapters[index] = chapter;
+    }
+
+    private void StartAutoSaveTimer()
+    {
+        StopAutoSaveTimer();
+        _autoSaveTimer = new System.Timers.Timer(AutoSaveIntervalMs);
+        _autoSaveTimer.Elapsed += async (s, e) =>
+        {
+            if (_wordsSinceLastSave > 0)
+            {
+                await SaveVersionAsync("auto-save");
+                _wordsSinceLastSave = 0;
+            }
+        };
+        _autoSaveTimer.Start();
+    }
+
+    private void StopAutoSaveTimer()
+    {
+        _autoSaveTimer?.Stop();
+        _autoSaveTimer?.Dispose();
+        _autoSaveTimer = null;
+    }
+
+    private async Task LoadVersionsAsync(int chapterId)
+    {
+        var versionList = await _dbService.GetVersionsAsync(chapterId);
+        Versions = new ObservableCollection<ChapterVersion>(versionList);
+    }
+
+    private async Task SaveVersionAsync(string trigger)
+    {
+        if (SelectedChapter == null || string.IsNullOrEmpty(SelectedChapter.Content))
+            return;
+
+        var version = new ChapterVersion
+        {
+            ChapterId = SelectedChapter.Id,
+            Content = SelectedChapter.Content,
+            WordCount = SelectedChapter.Content.Length,
+            Trigger = trigger
+        };
+
+        await _dbService.AddVersionAsync(version);
+
+        // 清理旧自动保存版本
+        if (trigger == "auto-save")
+            await _dbService.DeleteOldVersionsAsync(SelectedChapter.Id);
+
+        await LoadVersionsAsync(SelectedChapter.Id);
+    }
+
+    [RelayCommand]
+    private async Task SendInstruction()
+    {
+        if (string.IsNullOrWhiteSpace(InstructionText) || SelectedChapter == null)
+            return;
+
+        _writingCts?.Cancel();
+        await SaveVersionAsync("rewrite");
+
+        IsWriting = true;
+        StatusMessage = "正在根据指令重写章节...";
+
+        try
+        {
+            var storyService = new StoryService();
+            var newContent = await storyService.RewriteChapterAsync(
+                SelectedChapter.Content,
+                InstructionText,
+                SelectedChapter.Title,
+                CurrentNovel!.Genre,
+                CurrentNovel.WorldSetting,
+                previousSummary: "",
+                rewriteTemplate: SelectedChapterTemplate?.Content,
+                systemPrompt: SelectedSystemTemplate?.Content);
+
+            SelectedChapter.Content = newContent;
+            await _dbService.UpdateChapterAsync(SelectedChapter);
+            ChapterMarkdown = newContent;
+
+            StatusMessage = "章节已根据指令更新";
+            InstructionText = string.Empty;
+            await SaveVersionAsync("manual-save");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"重写失败: {ex.Message}";
+        }
+        finally
+        {
+            IsWriting = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task RewriteChapter()
+    {
+        InstructionText = "重新写这一章，内容方向不变";
+        await SendInstruction();
+    }
+
+    [RelayCommand]
+    private async Task SaveSnapshot()
+    {
+        await SaveVersionAsync("manual-save");
+        StatusMessage = "快照已保存";
+    }
+
+    [RelayCommand]
+    private async Task RollbackVersion(ChapterVersion version)
+    {
+        if (SelectedChapter == null) return;
+
+        SelectedChapter.Content = version.Content;
+        ChapterMarkdown = version.Content;
+        await _dbService.UpdateChapterAsync(SelectedChapter);
+        await SaveVersionAsync("manual-save");
+        StatusMessage = "已回滚到版本 " + version.Id;
+    }
+
+    [RelayCommand]
+    private void ViewVersion(ChapterVersion version)
+    {
+        StatusMessage = $"查看版本 {version.Id}（{version.Trigger}，{version.WordCount} 字）";
     }
 }

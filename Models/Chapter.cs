@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace AvaloniaNovel.Models;
 
@@ -12,4 +13,6 @@ public class Chapter
     public string Content { get; set; } = string.Empty;
     public ChapterStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
+
+    public List<ChapterVersion> Versions { get; set; } = new();
 }

@@ -214,6 +214,55 @@ public class DatabaseService
         await db.SaveChangesAsync();
     }
 
+    // ── ChapterVersion 版本管理 ──────────────────────────────────────────
+
+    // 获取章节所有版本（按时间倒序）
+    public async Task<List<ChapterVersion>> GetVersionsAsync(int chapterId)
+    {
+        await using var db = new NovelDbContext();
+        return await db.ChapterVersions
+            .Where(v => v.ChapterId == chapterId)
+            .OrderByDescending(v => v.CreatedAt)
+            .ToListAsync();
+    }
+
+    // 保存新版本
+    public async Task<ChapterVersion> AddVersionAsync(ChapterVersion version)
+    {
+        await using var db = new NovelDbContext();
+        version.CreatedAt = DateTime.UtcNow;
+        db.ChapterVersions.Add(version);
+        await db.SaveChangesAsync();
+        return version;
+    }
+
+    // 获取章节最新版本
+    public async Task<ChapterVersion?> GetLatestVersionAsync(int chapterId)
+    {
+        await using var db = new NovelDbContext();
+        return await db.ChapterVersions
+            .Where(v => v.ChapterId == chapterId)
+            .OrderByDescending(v => v.CreatedAt)
+            .FirstOrDefaultAsync();
+    }
+
+    // 清理旧自动保存版本（每个章节保留最近 20 个 auto-save）
+    public async Task DeleteOldVersionsAsync(int chapterId)
+    {
+        await using var db = new NovelDbContext();
+        var oldVersions = await db.ChapterVersions
+            .Where(v => v.ChapterId == chapterId && v.Trigger == "auto-save")
+            .OrderByDescending(v => v.CreatedAt)
+            .Skip(20)
+            .ToListAsync();
+
+        if (oldVersions.Count > 0)
+        {
+            db.ChapterVersions.RemoveRange(oldVersions);
+            await db.SaveChangesAsync();
+        }
+    }
+
     public static List<PromptTemplate> GetBuiltInTemplates(DateTime now) => new()
     {
         // ── 系统人设模板 ─────────────────────────────────────────────────
