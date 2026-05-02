@@ -1,72 +1,51 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AgentNovel.ViewModels"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:AgentNovel.ViewModels"
-             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AgentNovel.Views.SettingsView"
-             x:DataType="vm:SettingsViewModel"
-             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500">
+             x:DataType="vm:SettingsViewModel">
 
-    <ScrollViewer Padding="32,24" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Spacing="8" HorizontalAlignment="Stretch">
+    <Design.DataContext>
+        <vm:SettingsViewModel />
+    </Design.DataContext>
 
-            <TextBlock Text="外观" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8" />
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="16">
+            <TextBlock Text="关于" FontSize="20" FontWeight="Bold" />
 
-            <ui:SettingsExpander Header="主题" Description="选择您喜欢的应用主题">
-                <ui:SettingsExpander.Items>
-                    <ui:SettingsExpanderItem Description="在浅色和深色主题之间切换">
-                        <ui:SettingsExpanderItem.Content>
-                            <ComboBox Width="160" HorizontalAlignment="Right"
-                                      ItemsSource="{Binding AvailableThemes}"
-                                      SelectedItem="{Binding SelectedTheme}" />
-                        </ui:SettingsExpanderItem.Content>
-                    </ui:SettingsExpanderItem>
-                    <ui:SettingsExpanderItem Description="选择强调色">
-                        <ui:SettingsExpanderItem.Content>
-                            <ComboBox Width="160" HorizontalAlignment="Right"
-                                      ItemsSource="{Binding AccentColors}"
-                                      SelectedItem="{Binding SelectedAccentColor}" />
-                        </ui:SettingsExpanderItem.Content>
-                    </ui:SettingsExpanderItem>
-                </ui:SettingsExpander.Items>
-            </ui:SettingsExpander>
+            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{Binding AppName}" FontSize="24" FontWeight="Bold" />
+                    <TextBlock Text="{Binding Version, StringFormat='版本: {0}'}" Opacity="0.7" />
+                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,8,0,0" />
+                </StackPanel>
+            </Border>
 
-            <TextBlock Text="常规" FontSize="20" FontWeight="SemiBold" Margin="0,24,0,8" />
+            <TextBlock Text="功能说明" FontSize="20" FontWeight="Bold" Margin="0,16,0,0" />
 
-            <ui:SettingsExpander Header="云母效果" Description="使用云母材质作为窗口背景">
-                <ToggleSwitch IsChecked="{Binding EnableMicaEffect}" HorizontalAlignment="Right" />
-            </ui:SettingsExpander>
+            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="合并PDF" FontWeight="Bold" />
+                    <TextBlock Text="将多个PDF文件合并为一个文件，支持拖拽调整顺序。" TextWrapping="Wrap" Opacity="0.8" />
 
-            <ui:SettingsExpander Header="状态栏" Description="在窗口底部显示状态栏">
-                <ToggleSwitch IsChecked="{Binding ShowStatusBar}" HorizontalAlignment="Right" />
-            </ui:SettingsExpander>
+                    <TextBlock Text="拆分PDF" FontWeight="Bold" Margin="0,8,0,0" />
+                    <TextBlock Text="按页码范围拆分PDF文件，支持提取指定页面。" TextWrapping="Wrap" Opacity="0.8" />
 
-            <ui:SettingsExpander Header="紧凑模式" Description="减少内边距和边距以获得更紧凑的布局">
-                <ToggleSwitch IsChecked="{Binding CompactMode}" HorizontalAlignment="Right" />
-            </ui:SettingsExpander>
-
-            <ui:SettingsExpander Header="最近文件" Description="保留在历史记录中的最近文件数量">
-                <ui:NumberBox Value="{Binding MaxRecentFiles}" Minimum="1" Maximum="50"
-                              SpinButtonPlacementMode="Inline" Width="160" HorizontalAlignment="Right" />
-            </ui:SettingsExpander>
-
-            <ui:SettingsExpander Header="动画速度" Description="UI动画持续时间（毫秒）">
-                <Slider Value="{Binding AnimationSpeed}" Minimum="50" Maximum="500" Width="240"
-                        HorizontalAlignment="Right" />
-            </ui:SettingsExpander>
-
-            <TextBlock Text="通知" FontSize="20" FontWeight="SemiBold" Margin="0,24,0,8" />
-
-            <ui:SettingsExpander Header="Toast通知" Description="显示桌面通知以获取更新">
-                <ToggleSwitch IsChecked="True" HorizontalAlignment="Right" />
-            </ui:SettingsExpander>
-
-            <ui:SettingsExpander Header="声音效果" Description="为重要通知播放声音">
-                <ToggleSwitch IsChecked="False" HorizontalAlignment="Right" />
-            </ui:SettingsExpander>
-
+                    <TextBlock Text="页面管理" FontWeight="Bold" Margin="0,8,0,0" />
+                    <TextBlock Text="重新排序、旋转和删除PDF页面。" TextWrapping="Wrap" Opacity="0.8" />
+                </StackPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
-
 </UserControl>
+
