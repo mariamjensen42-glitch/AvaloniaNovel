@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AgentNovel.Models;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
+using PdfPageModel = AgentNovel.Models.PdfPage;
 
 namespace AgentNovel.Services;
 
@@ -28,7 +29,7 @@ public class PdfService
 
             for (int i = 0; i < document.PageCount; i++)
             {
-                pdfFile.Pages.Add(new PdfPage
+                pdfFile.Pages.Add(new PdfPageModel
                 {
                     PageNumber = i + 1,
                     Rotation = (int)document.Pages[i].Rotate
@@ -112,7 +113,7 @@ public class PdfService
                 if (pageNum >= 1 && pageNum <= inputDocument.PageCount)
                 {
                     var page = inputDocument.Pages[pageNum - 1];
-                    page.Rotate = (PdfPageRotate)(((int)page.Rotate + rotation) % 360);
+                    page.Rotate = (int)page.Rotate + rotation;
                 }
             }
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AgentNovel.Models;
 using AgentNovel.Services;
 using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\yun\\Programming\\AgentNovel\\AgentNovel.csproj": {}
+    "C:\\Users\\yun\\Programming\\AgentNovel\\AgentNovel.csproj": {}
   },
   "projects": {
-    "c:\\Users\\yun\\Programming\\AgentNovel\\AgentNovel.csproj": {
+    "C:\\Users\\yun\\Programming\\AgentNovel\\AgentNovel.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\yun\\Programming\\AgentNovel\\AgentNovel.csproj",
+        "projectUniqueName": "C:\\Users\\yun\\Programming\\AgentNovel\\AgentNovel.csproj",
         "projectName": "AgentNovel",
-        "projectPath": "c:\\Users\\yun\\Programming\\AgentNovel\\AgentNovel.csproj",
+        "projectPath": "C:\\Users\\yun\\Programming\\AgentNovel\\AgentNovel.csproj",
         "packagesPath": "C:\\Users\\yun\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\yun\\Programming\\AgentNovel\\obj\\",
+        "outputPath": "C:\\Users\\yun\\Programming\\AgentNovel\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\yun\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -68,9 +68,9 @@
               "target": "Package",
               "version": "[2.5.0, )"
             },
-            "Markdown.Avalonia": {
+            "PdfSharp": {
               "target": "Package",
-              "version": "[11.0.2, )"
+              "version": "[1.50.5147, )"
             }
           },
           "imports": [

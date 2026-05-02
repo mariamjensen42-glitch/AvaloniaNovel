@@ -16,8 +16,7 @@
             <Button Content="添加文件" Command="{Binding AddFilesCommand}" />
             <Button Content="移除文件" Command="{Binding RemoveFileCommand}" 
                     IsEnabled="{Binding SelectedFile, Converter={x:Static ObjectConverters.IsNotNull}}" />
-            <Button Content="清空列表" Command="{Binding ClearFilesCommand}" 
-                    IsEnabled="{Binding PdfFiles.Count, Converter={x:Static ObjectConverters.ToBoolean}}" />
+            <Button Content="清空列表" Command="{Binding ClearFilesCommand}" />
         </StackPanel>
 
         <ListBox Grid.Row="1"
@@ -32,7 +31,7 @@
                             <TextBlock Text="{Binding PageCount, StringFormat='{}{0} 页'}" Opacity="0.7" />
                         </StackPanel>
                         <TextBlock Grid.Column="1" 
-                                   Text="{Binding FileSize, Converter={x:Static ObjectConverters.StringFormat}, ConverterParameter='{}{0:N0} KB'}"
+                                   Text="{Binding FileSize}"
                                    VerticalAlignment="Center"
                                    Opacity="0.7" />
                     </Grid>

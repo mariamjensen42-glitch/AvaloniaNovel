@@ -1,12 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "JKmADemyg24=",
+  "dgSpecHash": "dw3VwInyp9o=",
   "success": true,
-  "projectFilePath": "c:\\Users\\yun\\Programming\\AgentNovel\\AgentNovel.csproj",
+  "projectFilePath": "C:\\Users\\yun\\Programming\\AgentNovel\\AgentNovel.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\yun\\.nuget\\packages\\avalonia\\11.3.10\\avalonia.11.3.10.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\avalonia.angle.windows.natives\\2.1.25547.20250602\\avalonia.angle.windows.natives.2.1.25547.20250602.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\avalonia.avaloniaedit\\11.0.0\\avalonia.avaloniaedit.11.0.0.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\avalonia.buildservices\\11.3.2\\avalonia.buildservices.11.3.2.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\avalonia.controls.colorpicker\\11.3.10\\avalonia.controls.colorpicker.11.3.10.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\avalonia.controls.datagrid\\11.3.10\\avalonia.controls.datagrid.11.3.10.nupkg.sha512",
@@ -16,39 +15,40 @@
     "C:\\Users\\yun\\.nuget\\packages\\avalonia.native\\11.3.10\\avalonia.native.11.3.10.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\avalonia.remote.protocol\\11.3.10\\avalonia.remote.protocol.11.3.10.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\avalonia.skia\\11.3.10\\avalonia.skia.11.3.10.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\avalonia.svg\\11.0.0\\avalonia.svg.11.0.0.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\avalonia.win32\\11.3.10\\avalonia.win32.11.3.10.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\avalonia.x11\\11.3.10\\avalonia.x11.11.3.10.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\avaloniaui.diagnosticssupport\\2.2.1\\avaloniaui.diagnosticssupport.2.2.1.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\colortextblock.avalonia\\11.0.2\\colortextblock.avalonia.11.0.2.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\communitytoolkit.mvvm\\8.4.1\\communitytoolkit.mvvm.8.4.1.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\excss\\4.1.4\\excss.4.1.4.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\fizzler\\1.2.1\\fizzler.1.2.1.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\fluentavaloniaui\\2.5.0\\fluentavaloniaui.2.5.0.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\harfbuzzsharp\\8.3.1.1\\harfbuzzsharp.8.3.1.1.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\harfbuzzsharp.nativeassets.linux\\8.3.1.1\\harfbuzzsharp.nativeassets.linux.8.3.1.1.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\harfbuzzsharp.nativeassets.macos\\8.3.1.1\\harfbuzzsharp.nativeassets.macos.8.3.1.1.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\harfbuzzsharp.nativeassets.webassembly\\8.3.1.1\\harfbuzzsharp.nativeassets.webassembly.8.3.1.1.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\harfbuzzsharp.nativeassets.win32\\8.3.1.1\\harfbuzzsharp.nativeassets.win32.8.3.1.1.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\htmlagilitypack\\1.11.42\\htmlagilitypack.1.11.42.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\markdown.avalonia\\11.0.2\\markdown.avalonia.11.0.2.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\markdown.avalonia.html\\11.0.2\\markdown.avalonia.html.11.0.2.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\markdown.avalonia.svg\\11.0.2\\markdown.avalonia.svg.11.0.2.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\markdown.avalonia.syntaxhigh\\11.0.2\\markdown.avalonia.syntaxhigh.11.0.2.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\markdown.avalonia.tight\\11.0.2\\markdown.avalonia.tight.11.0.2.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\microcom.runtime\\0.11.0\\microcom.runtime.0.11.0.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.0\\microsoft.extensions.logging.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\microsoft.io.recyclablememorystream\\3.0.1\\microsoft.io.recyclablememorystream.3.0.1.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\shimskiasharp\\1.0.0\\shimskiasharp.1.0.0.nupkg.sha512",
+    "C:\\Users\\yun\\.nuget\\packages\\pdfsharp\\1.50.5147\\pdfsharp.1.50.5147.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\skiasharp\\2.88.9\\skiasharp.2.88.9.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\skiasharp.nativeassets.linux\\2.88.9\\skiasharp.nativeassets.linux.2.88.9.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\skiasharp.nativeassets.macos\\2.88.9\\skiasharp.nativeassets.macos.2.88.9.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\skiasharp.nativeassets.webassembly\\2.88.9\\skiasharp.nativeassets.webassembly.2.88.9.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\skiasharp.nativeassets.win32\\2.88.9\\skiasharp.nativeassets.win32.2.88.9.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\svg.custom\\1.0.0\\svg.custom.1.0.0.nupkg.sha512",
-    "C:\\Users\\yun\\.nuget\\packages\\svg.model\\1.0.0\\svg.model.1.0.0.nupkg.sha512",
     "C:\\Users\\yun\\.nuget\\packages\\tmds.dbus.protocol\\0.21.2\\tmds.dbus.protocol.0.21.2.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "message": "已使用“.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1”而不是项目目标框架“net10.0”还原包“PDFsharp 1.50.5147”。此包可能与项目不完全兼容。",
+      "projectPath": "C:\\Users\\yun\\Programming\\AgentNovel\\AgentNovel.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\yun\\Programming\\AgentNovel\\AgentNovel.csproj",
+      "libraryId": "PDFsharp",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
 }
