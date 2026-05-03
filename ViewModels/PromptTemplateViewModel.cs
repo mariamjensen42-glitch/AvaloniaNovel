@@ -10,18 +10,18 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AvaloniaNovel.ViewModels;
 
+public sealed record FilterOption(string Label, PromptTemplateType? Type);
+
 public partial class PromptTemplateViewModel : ViewModelBase
 {
     private readonly DatabaseService _dbService;
 
-    // ── 模板列表 ─────────────────────────────────────────────────────
     [ObservableProperty]
     private ObservableCollection<PromptTemplate> _templates = new();
 
     [ObservableProperty]
     private PromptTemplate? _selectedTemplate;
 
-    // ── 编辑表单 ─────────────────────────────────────────────────────
     [ObservableProperty]
     private string _editName = string.Empty;
 
@@ -40,14 +40,6 @@ public partial class PromptTemplateViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
-    // ── 筛选 ─────────────────────────────────────────────────────────
-    [ObservableProperty]
-    private PromptTemplateType _filterType = PromptTemplateType.System;
-
-    /// <summary>null 表示显示全部</summary>
-    [ObservableProperty]
-    private PromptTemplateType? _activeFilter;
-
     public PromptTemplateType[] TemplateTypes { get; } =
         Enum.GetValues<PromptTemplateType>();
 
@@ -59,10 +51,52 @@ public partial class PromptTemplateViewModel : ViewModelBase
         _ => type.ToString()
     };
 
+    public List<FilterOption> FilterOptions { get; } = new()
+    {
+        new("全部", null),
+        new("系统人设", PromptTemplateType.System),
+        new("大纲生成", PromptTemplateType.Outline),
+        new("章节写作", PromptTemplateType.Chapter)
+    };
+
+    [ObservableProperty]
+    private FilterOption? _selectedFilterOption;
+
+    [ObservableProperty]
+    private PromptTemplateType? _activeFilter;
+
+    public bool IsFilterAll => !ActiveFilter.HasValue;
+    public bool IsFilterSystem => ActiveFilter == PromptTemplateType.System;
+    public bool IsFilterOutline => ActiveFilter == PromptTemplateType.Outline;
+    public bool IsFilterChapter => ActiveFilter == PromptTemplateType.Chapter;
+
+    public bool IsDetailEmpty => SelectedTemplate == null;
+    public bool IsDetailViewing => SelectedTemplate != null && !IsEditing;
+    public bool IsDetailEditing => IsEditing;
+
     public PromptTemplateViewModel()
     {
         _dbService = new DatabaseService();
+        SelectedFilterOption = FilterOptions[0];
         _ = LoadTemplatesAsync();
+    }
+
+    partial void OnSelectedFilterOptionChanged(FilterOption? value)
+    {
+        if (value != null)
+            _ = FilterByType(value.Type);
+    }
+
+    [RelayCommand]
+    private async Task FilterByType(PromptTemplateType? type)
+    {
+        ActiveFilter = type;
+        OnPropertyChanged(nameof(IsFilterAll));
+        OnPropertyChanged(nameof(IsFilterSystem));
+        OnPropertyChanged(nameof(IsFilterOutline));
+        OnPropertyChanged(nameof(IsFilterChapter));
+        var all = await _dbService.GetAllPromptTemplatesAsync();
+        ApplyFilter(all);
     }
 
     public async Task LoadTemplatesAsync()
@@ -71,24 +105,18 @@ public partial class PromptTemplateViewModel : ViewModelBase
         ApplyFilter(all);
     }
 
-    [RelayCommand]
-    private async Task FilterByType(PromptTemplateType? type)
-    {
-        ActiveFilter = type;
-        var all = await _dbService.GetAllPromptTemplatesAsync();
-        ApplyFilter(all);
-    }
-
     private void ApplyFilter(List<PromptTemplate> all)
     {
-        var filtered = ActiveFilter.HasValue
-            ? all.Where(t => t.Type == ActiveFilter.Value).ToList()
+        var type = SelectedFilterOption?.Type;
+        var filtered = type.HasValue
+            ? all.Where(t => t.Type == type.Value).ToList()
             : all;
         Templates = new ObservableCollection<PromptTemplate>(filtered);
     }
 
     partial void OnSelectedTemplateChanged(PromptTemplate? value)
     {
+        NotifyDetailState();
         if (value != null)
         {
             EditName = value.Name;
@@ -97,19 +125,29 @@ public partial class PromptTemplateViewModel : ViewModelBase
         }
     }
 
-    // ── 新建模板 ─────────────────────────────────────────────────────
+    partial void OnIsEditingChanged(bool value)
+    {
+        NotifyDetailState();
+    }
+
+    private void NotifyDetailState()
+    {
+        OnPropertyChanged(nameof(IsDetailEmpty));
+        OnPropertyChanged(nameof(IsDetailViewing));
+        OnPropertyChanged(nameof(IsDetailEditing));
+    }
+
     [RelayCommand]
     private void NewTemplate()
     {
         IsEditing = true;
         SelectedTemplate = null;
         EditName = string.Empty;
-        EditType = FilterType;
+        EditType = PromptTemplateType.System;
         EditContent = string.Empty;
         StatusMessage = string.Empty;
     }
 
-    // ── 编辑选中模板 ─────────────────────────────────────────────────
     [RelayCommand]
     private void EditTemplate()
     {
@@ -121,7 +159,6 @@ public partial class PromptTemplateViewModel : ViewModelBase
         StatusMessage = string.Empty;
     }
 
-    // ── 保存模板（新建或更新）──────────────────────────────────────
     [RelayCommand]
     private async Task SaveTemplate()
     {
@@ -136,7 +173,6 @@ public partial class PromptTemplateViewModel : ViewModelBase
         {
             if (SelectedTemplate != null)
             {
-                // 更新
                 SelectedTemplate.Name = EditName.Trim();
                 SelectedTemplate.Type = EditType;
                 SelectedTemplate.Content = EditContent;
@@ -145,7 +181,6 @@ public partial class PromptTemplateViewModel : ViewModelBase
             }
             else
             {
-                // 新建
                 var newTemplate = new PromptTemplate
                 {
                     Name = EditName.Trim(),
@@ -172,7 +207,6 @@ public partial class PromptTemplateViewModel : ViewModelBase
         }
     }
 
-    // ── 取消编辑 ─────────────────────────────────────────────────────
     [RelayCommand]
     private void CancelEdit()
     {
@@ -186,7 +220,6 @@ public partial class PromptTemplateViewModel : ViewModelBase
         StatusMessage = string.Empty;
     }
 
-    // ── 删除模板 ─────────────────────────────────────────────────────
     [RelayCommand]
     private async Task DeleteTemplate()
     {
@@ -211,7 +244,6 @@ public partial class PromptTemplateViewModel : ViewModelBase
         }
     }
 
-    // ── 复制模板 ─────────────────────────────────────────────────────
     [RelayCommand]
     private async Task DuplicateTemplate()
     {

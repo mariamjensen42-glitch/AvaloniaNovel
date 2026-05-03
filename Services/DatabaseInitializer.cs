@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using AvaloniaNovel.Data;
+using AvaloniaNovel.Models;
 using AvaloniaNovel.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,20 +14,41 @@ public static class DatabaseInitializer
         using var db = new NovelDbContext();
         db.Database.Migrate();
 
-        // 确保默认模板存在（同步执行，避免 UI 线程死锁）
+        DeduplicateBuiltInTemplates(db);
         EnsureDefaultTemplatesSync(db);
+    }
+
+    private static void DeduplicateBuiltInTemplates(NovelDbContext db)
+    {
+        var builtIn = db.PromptTemplates.Where(t => t.IsBuiltIn).ToList();
+        if (builtIn.Count == 0)
+            return;
+
+        var toRemove = builtIn
+            .GroupBy(t => new { t.Name, t.Type })
+            .Where(g => g.Count() > 1)
+            .SelectMany(g => g.OrderBy(x => x.Id).Skip(1))
+            .ToList();
+
+        if (toRemove.Count == 0)
+            return;
+
+        db.PromptTemplates.RemoveRange(toRemove);
+        db.SaveChanges();
     }
 
     private static void EnsureDefaultTemplatesSync(NovelDbContext db)
     {
-        var existingNames = db.PromptTemplates
+        var existing = db.PromptTemplates
             .Where(t => t.IsBuiltIn)
-            .Select(t => t.Name)
+            .Select(t => new { t.Name, t.Type })
             .ToHashSet();
 
         var now = DateTime.Now;
         var defaults = DatabaseService.GetBuiltInTemplates(now);
-        var newTemplates = defaults.Where(d => !existingNames.Contains(d.Name)).ToList();
+        var newTemplates = defaults
+            .Where(d => !existing.Contains(new { d.Name, d.Type }))
+            .ToList();
 
         if (newTemplates.Count == 0)
             return;

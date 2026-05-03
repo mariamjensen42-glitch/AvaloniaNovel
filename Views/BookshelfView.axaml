@@ -6,6 +6,26 @@
              x:Class="AvaloniaNovel.Views.BookshelfView"
              x:DataType="vm:BookshelfViewModel">
 
+    <UserControl.Styles>
+        <Style Selector="Border.novel-card">
+            <Setter Property="Background" Value="{DynamicResource SukiBackgroundBrush}" />
+            <Setter Property="CornerRadius" Value="20" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+            <Setter Property="Padding" Value="18" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Animations>
+                <Animation Duration="0:0:0.2" FillMode="Forward">
+                    <KeyFrame Cue="100%">
+                                <Setter Property="Background" Value="{DynamicResource SukiCardBackgroundBrush}" />
+                            </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="Border.novel-card:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SukiCardBackgroundBrush}" />
+        </Style>
+    </UserControl.Styles>
+
     <Grid>
         <ScrollViewer Padding="28,24"
                       HorizontalScrollBarVisibility="Disabled">
@@ -32,8 +52,8 @@
                                        FontSize="34"
                                        FontWeight="Bold" />
 
-                            <TextBlock Text="把小说封面、题材、世界观和创作入口集中在一个更干净的总览页里。"
-                                       MaxWidth="640"
+                            <TextBlock Text="管理你的小说作品，随时进入创作或导出。"
+                                       MaxWidth="480"
                                        TextWrapping="Wrap"
                                        Opacity="0.82"
                                        FontSize="14" />
@@ -77,8 +97,8 @@
                         <StackPanel Spacing="6">
                             <TextBlock Text="封面状态"
                                        Opacity="0.68" />
-                            <TextBlock Text="支持上传"
-                                       FontSize="28"
+                            <TextBlock Text="{Binding CoverStatusText}"
+                                       FontSize="24"
                                        FontWeight="Bold" />
                         </StackPanel>
                     </Border>
@@ -102,14 +122,15 @@
                         CornerRadius="22"
                         Padding="22"
                         HorizontalAlignment="Stretch">
-                    <StackPanel Spacing="18">
+                    <StackPanel Spacing="16">
                         <Grid ColumnDefinitions="*,Auto">
-                            <StackPanel Spacing="6">
+                            <StackPanel Spacing="4">
                                 <TextBlock Text="作品列表"
-                                           FontSize="24"
+                                           FontSize="22"
                                            FontWeight="Bold" />
-                                <TextBlock Text="所有作品都会以统一卡片展示，重点突出封面、题材和进入创作。"
-                                           Opacity="0.72" />
+                                <TextBlock Text="点击卡片进入创作，右侧按钮可快速操作。"
+                                           Opacity="0.7"
+                                           FontSize="13" />
                             </StackPanel>
 
                             <Border Grid.Column="1"
@@ -130,12 +151,12 @@
                                         HorizontalAlignment="Center">
                                 <TextBlock Text="书架还是空的"
                                            HorizontalAlignment="Center"
-                                           FontSize="22"
+                                           FontSize="20"
                                            FontWeight="Bold" />
-                                <TextBlock Text="先创建一本小说，上传封面后这里会生成完整的作品卡片。"
+                                <TextBlock Text="创建第一本小说，开始你的 AI 写作之旅。"
                                            HorizontalAlignment="Center"
                                            TextAlignment="Center"
-                                           MaxWidth="420"
+                                           MaxWidth="380"
                                            Opacity="0.72"
                                            TextWrapping="Wrap" />
                                 <Button Content="现在创建"
@@ -150,16 +171,13 @@
                                       IsVisible="{Binding HasNovels}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="{DynamicResource SukiBackgroundBrush}"
-                                            CornerRadius="20"
-                                            Margin="0,0,0,16"
-                                            Padding="18">
-                                        <Grid ColumnDefinitions="128,*,Auto"
-                                              ColumnSpacing="20">
+                                    <Border Classes="novel-card">
+                                        <Grid ColumnDefinitions="120,*,Auto"
+                                              ColumnSpacing="18">
                                             <Border Grid.Column="0"
-                                                    Width="128"
-                                                    Height="172"
-                                                    CornerRadius="16"
+                                                    Width="120"
+                                                    Height="160"
+                                                    CornerRadius="14"
                                                     ClipToBounds="True"
                                                     Background="{DynamicResource SukiCardBackgroundBrush}">
                                                 <Grid>
@@ -179,46 +197,53 @@
                                             </Border>
 
                                             <StackPanel Grid.Column="1"
-                                                        Spacing="14"
+                                                        Spacing="10"
                                                         VerticalAlignment="Center">
-                                                <StackPanel Spacing="8">
+                                                <StackPanel Spacing="4">
                                                     <TextBlock Text="{Binding Title}"
-                                                               FontSize="26"
+                                                               FontSize="22"
                                                                FontWeight="Bold"
                                                                TextWrapping="Wrap" />
                                                     <TextBlock Text="{Binding WorldSetting}"
                                                                TextWrapping="Wrap"
-                                                               MaxHeight="48"
+                                                               MaxHeight="40"
                                                                TextTrimming="CharacterEllipsis"
-                                                               Opacity="0.74" />
+                                                               Opacity="0.7"
+                                                               FontSize="13" />
                                                 </StackPanel>
 
                                                 <WrapPanel Orientation="Horizontal">
-                                                    <Border Background="{DynamicResource SukiCardBackgroundBrush}"
+                                                    <Border Background="{DynamicResource SukiAccentColorBrush}"
                                                             CornerRadius="999"
-                                                            Padding="10,6"
-                                                            Margin="0,0,10,8">
+                                                            Padding="9,5"
+                                                            Margin="0,0,8,6"
+                                                            Opacity="0.15">
                                                         <TextBlock Text="{Binding Genre}"
-                                                                   FontWeight="SemiBold" />
+                                                                   FontWeight="SemiBold"
+                                                                   FontSize="12" />
                                                     </Border>
                                                     <Border Background="{DynamicResource SukiCardBackgroundBrush}"
                                                             CornerRadius="999"
-                                                            Padding="10,6"
-                                                            Margin="0,0,10,8">
-                                                        <TextBlock Text="{Binding Chapters.Count, StringFormat={}{0} 章节}" />
+                                                            Padding="9,5"
+                                                            Margin="0,0,8,6">
+                                                        <TextBlock Text="{Binding Chapters.Count, StringFormat={}{0} 章}"
+                                                                   FontSize="12"
+                                                                   Opacity="0.8" />
                                                     </Border>
                                                     <Border Background="{DynamicResource SukiCardBackgroundBrush}"
                                                             CornerRadius="999"
-                                                            Padding="10,6"
-                                                            Margin="0,0,10,8">
-                                                        <TextBlock Text="{Binding UpdatedAt, StringFormat=更新于 {0:yyyy-MM-dd}}" />
+                                                            Padding="9,5"
+                                                            Margin="0,0,8,6">
+                                                        <TextBlock Text="{Binding UpdatedAt, StringFormat=更新 {0:MM-dd}}"
+                                                                   FontSize="12"
+                                                                   Opacity="0.65" />
                                                     </Border>
                                                 </WrapPanel>
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="2"
-                                                        Spacing="10"
-                                                        Width="144"
+                                                        Spacing="8"
+                                                        Width="136"
                                                         VerticalAlignment="Center">
                                                 <Button Content="进入创作"
                                                         Classes="Flat Accent"

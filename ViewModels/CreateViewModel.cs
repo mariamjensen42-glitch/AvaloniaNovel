@@ -101,6 +101,9 @@ public partial class CreateViewModel : ViewModelBase
     private const int AutoSaveIntervalMs = 60000;   // 每 60 秒自动保存
 
     [ObservableProperty]
+    private bool _showVersionPanel;
+
+    [ObservableProperty]
     private string _instructionText = string.Empty;
 
     public CreateViewModel()
@@ -320,6 +323,12 @@ public partial class CreateViewModel : ViewModelBase
     private void ToggleTemplatePanel()
     {
         ShowTemplatePanel = !ShowTemplatePanel;
+    }
+
+    [RelayCommand]
+    private void ToggleVersionPanel()
+    {
+        ShowVersionPanel = !ShowVersionPanel;
     }
 
     [RelayCommand]

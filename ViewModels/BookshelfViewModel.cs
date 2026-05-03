@@ -53,6 +53,8 @@ public partial class BookshelfViewModel : ViewModelBase
 
     public string[] GenreOptions { get; } = ["都市", "玄幻", "科幻", "悬疑", "历史", "言情"];
     public bool HasNovels => Novels.Count > 0;
+    public int NovelsWithCover => System.Linq.Enumerable.Count(Novels, n => n.HasCoverImage);
+    public string CoverStatusText => NovelsWithCover == 0 ? "暂无封面" : $"{NovelsWithCover}/{Novels.Count} 有封面";
     public bool HasNewNovelCover => NewNovelCoverPreview != null;
     public string NewNovelCoverDisplayName =>
         string.IsNullOrWhiteSpace(NewNovelCoverFileName) ? "未选择图片" : NewNovelCoverFileName;
@@ -245,5 +247,7 @@ public partial class BookshelfViewModel : ViewModelBase
     private void OnNovelsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         OnPropertyChanged(nameof(HasNovels));
+        OnPropertyChanged(nameof(NovelsWithCover));
+        OnPropertyChanged(nameof(CoverStatusText));
     }
 }

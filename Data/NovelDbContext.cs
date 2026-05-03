@@ -61,6 +61,7 @@ public class NovelDbContext : DbContext
 
         modelBuilder.Entity<ChapterVersion>(entity =>
         {
+            entity.ToTable("ChapterVersion");
             entity.HasKey(e => e.Id);
             entity.HasOne(e => e.Chapter)
                   .WithMany(c => c.Versions)

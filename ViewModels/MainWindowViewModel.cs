@@ -19,6 +19,7 @@ public partial class MainWindowViewModel : ViewModelBase
         0 => "书架",
         1 => "创作",
         2 => "设置",
+        3 => "模板",
         _ => "书架"
     };
 
@@ -27,6 +28,7 @@ public partial class MainWindowViewModel : ViewModelBase
         0 => "作品总览",
         1 => "章节工作台",
         2 => "应用设置",
+        3 => "提示词管理",
         _ => "作品总览"
     };
 
@@ -34,12 +36,14 @@ public partial class MainWindowViewModel : ViewModelBase
     public BookshelfViewModel BookshelfViewModel { get; }
     public CreateViewModel CreateViewModel { get; }
     public SettingsViewModel SettingsViewModel { get; }
+    public PromptTemplateViewModel PromptTemplateViewModel { get; }
 
     public MainWindowViewModel()
     {
         BookshelfViewModel = new BookshelfViewModel(DialogManager);
         CreateViewModel = new CreateViewModel();
         SettingsViewModel = new SettingsViewModel();
+        PromptTemplateViewModel = new PromptTemplateViewModel();
 
         BookshelfViewModel.NovelOpened += OnNovelOpened;
 

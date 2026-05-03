@@ -109,6 +109,16 @@
                     <views:SettingsView DataContext="{Binding SettingsViewModel}" />
                 </sukiUi:SukiSideMenuItem.PageContent>
             </sukiUi:SukiSideMenuItem>
+
+            <sukiUi:SukiSideMenuItem Header="模板">
+                <sukiUi:SukiSideMenuItem.Icon>
+                    <PathIcon
+                        Data="M4 6h16M4 12h16M4 18h7" />
+                </sukiUi:SukiSideMenuItem.Icon>
+                <sukiUi:SukiSideMenuItem.PageContent>
+                    <views:PromptTemplateView DataContext="{Binding PromptTemplateViewModel}" />
+                </sukiUi:SukiSideMenuItem.PageContent>
+            </sukiUi:SukiSideMenuItem>
         </sukiUi:SukiSideMenu.Items>
     </sukiUi:SukiSideMenu>
 </sukiUi:SukiWindow>
