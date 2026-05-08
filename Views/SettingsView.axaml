@@ -1,98 +1,158 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
-             xmlns:theme="clr-namespace:SukiUI.Theme;assembly=SukiUI"
              xmlns:vm="using:AvaloniaNovel.ViewModels"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:fl="using:FluentIcons.Common"
              x:Class="AvaloniaNovel.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
-    <ScrollViewer Padding="26,24">
-        <StackPanel Spacing="22"
-                    MaxWidth="860">
-            <sukiUi:GlassCard Classes="Accent"
-                              CornerRadius="24">
+    <ScrollViewer Padding="32,28">
+        <StackPanel Spacing="24"
+                    MaxWidth="800">
+            <Border CornerRadius="24"
+                    Padding="28"
+                    Background="{StaticResource PrimaryColor}">
                 <Grid ColumnDefinitions="*,Auto"
-                      ColumnSpacing="20"
-                      Margin="6">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="设置中心"
-                                   FontSize="32"
-                                   FontWeight="Bold" />
-                        <TextBlock Text="把模型访问、接口密钥和应用信息收拢到统一的设置页，不再像普通表单那样松散。"
-                                   MaxWidth="560"
-                                   TextWrapping="Wrap"
-                                   Opacity="0.82" />
+                      ColumnSpacing="24"
+                      Margin="4">
+                    <StackPanel Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Border Width="48" Height="48" CornerRadius="14" Background="White" Opacity="0.2">
+                                <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Settings}" IconVariant="Regular" FontSize="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel>
+                                <TextBlock Text="设置中心"
+                                           FontSize="34"
+                                           FontWeight="Bold"
+                                           Foreground="White" />
+                                <TextBlock Text="管理应用配置和模型接口设置"
+                                           MaxWidth="560"
+                                           TextWrapping="Wrap"
+                                           Opacity="0.88"
+                                           Foreground="White" />
+                            </StackPanel>
+                        </StackPanel>
                     </StackPanel>
 
                     <Border Grid.Column="1"
                             Background="#18FFFFFF"
                             CornerRadius="18"
-                            Padding="14,12"
+                            Padding="16,12"
                             VerticalAlignment="Center">
-                        <TextBlock Text="版本 1.0.0"
-                                   FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Info}" IconVariant="Regular" FontSize="16" Foreground="White" />
+                            <TextBlock Text="版本 1.0.0"
+                                       FontWeight="SemiBold"
+                                       Foreground="White" />
+                        </StackPanel>
                     </Border>
                 </Grid>
-            </sukiUi:GlassCard>
+            </Border>
 
-            <Border Background="{DynamicResource SukiCardBackgroundBrush}"
-                    CornerRadius="22"
-                    Padding="22">
+            <Border CornerRadius="22"
+                    Padding="24"
+                    Background="{StaticResource SurfaceColor}"
+                    Classes="Card">
                 <StackPanel Spacing="20">
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="模型接口"
-                                   FontSize="22"
-                                   FontWeight="Bold" />
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Globe}" IconVariant="Regular" FontSize="20" Foreground="{StaticResource PrimaryColor}" />
+                            <TextBlock Text="模型接口"
+                                       FontSize="22"
+                                       FontWeight="Bold" />
+                        </StackPanel>
                         <TextBlock Text="当前应用使用 DeepSeek API Key 进行模型访问。"
-                                   Opacity="0.72" />
+                                   Foreground="{StaticResource TextSecondary}" />
                     </StackPanel>
 
                     <StackPanel Spacing="8">
-                        <TextBlock Text="DeepSeek API Key"
-                                   FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="DeepSeek API Key"
+                                       FontWeight="SemiBold" />
+                            <Border Background="{StaticResource WarningColor}" Opacity="0.1" CornerRadius="6" Padding="6,2">
+                                <TextBlock Text="必填" FontSize="10" Foreground="{StaticResource WarningColor}" />
+                            </Border>
+                        </StackPanel>
                         <TextBox Text="{Binding ApiKey}"
                                  Height="44"
-                                 Watermark="请输入可用的 API Key"
-                                 theme:TextBoxExtensions.AddDeleteButton="True" />
+                                 PlaceholderText="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal"
                                 Spacing="12">
                         <Button Content="保存设置"
                                 Command="{Binding SaveSettingsCommand}"
-                                Classes="Flat Accent"
                                 IsEnabled="{Binding !IsSaving}" />
                         <Button Content="保存中..."
                                 IsVisible="{Binding IsSaving}"
-                                theme:ButtonExtensions.ShowProgress="True"
-                                IsEnabled="False" />
+                                IsEnabled="False"
+                                Classes="Secondary" />
                     </StackPanel>
 
                     <Border IsVisible="{Binding StatusMessage, Converter={x:Static vm:StringNullOrEmptyConverter.Instance}}"
-                            Background="{DynamicResource SukiBackgroundBrush}"
-                            CornerRadius="14"
-                            Padding="12,10">
-                        <TextBlock Text="{Binding StatusMessage}"
-                                   Foreground="{DynamicResource SukiAccentColorBrush}" />
+                            CornerRadius="12"
+                            Padding="14,10"
+                            Background="{StaticResource SurfaceAltColor}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ic:SymbolIcon Symbol="{x:Static fl:Symbol.CheckmarkCircle}" IconVariant="Regular" FontSize="16" Foreground="{StaticResource AccentColor}" />
+                            <TextBlock Text="{Binding StatusMessage}"
+                                       Foreground="{StaticResource AccentColor}" />
+                        </StackPanel>
                     </Border>
                 </StackPanel>
             </Border>
 
-            <Border Background="{DynamicResource SukiCardBackgroundBrush}"
-                    CornerRadius="22"
-                    Padding="22">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="关于应用"
-                               FontSize="22"
-                               FontWeight="Bold" />
-                    <TextBlock Text="AINovelFlow"
-                               FontSize="18"
-                               FontWeight="SemiBold" />
-                    <TextBlock Text="AI 网文创作工具"
-                               Opacity="0.76" />
-                    <TextBlock Text="当前项目已经覆盖书架、封面上传、章节创作与导出。"
-                               TextWrapping="Wrap"
-                               Opacity="0.76" />
+            <Border CornerRadius="22"
+                    Padding="24"
+                    Background="{StaticResource SurfaceColor}"
+                    Classes="Card">
+                <StackPanel Spacing="14">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Info}" IconVariant="Regular" FontSize="20" Foreground="{StaticResource SecondaryColor}" />
+                        <TextBlock Text="关于应用"
+                                   FontSize="22"
+                                   FontWeight="Bold" />
+                    </StackPanel>
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="AINovelFlow"
+                                   FontSize="20"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="AI 网文创作工具"
+                                   Foreground="{StaticResource TextSecondary}" />
+                        <TextBlock Text="当前项目已经覆盖书架、封面上传、章节创作与导出。"
+                                   TextWrapping="Wrap"
+                                   Foreground="{StaticResource TextSecondary}" />
+                    </StackPanel>
+                    <Border Height="1" Background="{StaticResource BorderColor}" Opacity="0.3" Margin="0,8" />
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="功能特性" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border CornerRadius="8" Padding="10,6" Background="{StaticResource SurfaceAltColor}">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <ic:SymbolIcon Symbol="{x:Static fl:Symbol.BookOpen}" IconVariant="Regular" FontSize="14" Foreground="{StaticResource PrimaryColor}" />
+                                    <TextBlock Text="书架管理" FontSize="13" />
+                                </StackPanel>
+                            </Border>
+                            <Border CornerRadius="8" Padding="10,6" Background="{StaticResource SurfaceAltColor}">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Image}" IconVariant="Regular" FontSize="14" Foreground="{StaticResource SecondaryColor}" />
+                                    <TextBlock Text="封面上传" FontSize="13" />
+                                </StackPanel>
+                            </Border>
+                            <Border CornerRadius="8" Padding="10,6" Background="{StaticResource SurfaceAltColor}">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Sparkle}" IconVariant="Regular" FontSize="14" Foreground="{StaticResource AccentColor}" />
+                                    <TextBlock Text="AI创作" FontSize="13" />
+                                </StackPanel>
+                            </Border>
+                            <Border CornerRadius="8" Padding="10,6" Background="{StaticResource SurfaceAltColor}">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <ic:SymbolIcon Symbol="{x:Static fl:Symbol.ArrowDownload}" IconVariant="Regular" FontSize="14" Foreground="{StaticResource WarningColor}" />
+                                    <TextBlock Text="导出功能" FontSize="13" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </StackPanel>

@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using AvaloniaNovel.Models;
+using AvaloniaNovel.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
-using SukiUI.Dialogs;
 
 namespace AvaloniaNovel.ViewModels;
 
@@ -32,7 +32,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _ => "作品总览"
     };
 
-    public ISukiDialogManager DialogManager { get; } = new SukiDialogManager();
+    public IDialogManager DialogManager { get; }
     public BookshelfViewModel BookshelfViewModel { get; }
     public CreateViewModel CreateViewModel { get; }
     public SettingsViewModel SettingsViewModel { get; }
@@ -40,6 +40,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
+        DialogManager = new DialogManager();
         BookshelfViewModel = new BookshelfViewModel(DialogManager);
         CreateViewModel = new CreateViewModel();
         SettingsViewModel = new SettingsViewModel();

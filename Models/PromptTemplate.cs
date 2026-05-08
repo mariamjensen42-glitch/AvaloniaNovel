@@ -19,6 +19,9 @@ public class PromptTemplate
     /// <summary>模板内容，支持 Mustache 风格占位符</summary>
     public string Content { get; set; } = string.Empty;
 
+    /// <summary>变量说明，每行一个变量</summary>
+    public string Variables { get; set; } = string.Empty;
+
     /// <summary>是否为内置默认模板（不可删除）</summary>
     public bool IsBuiltIn { get; set; }
 

@@ -40,6 +40,9 @@ public partial class PromptTemplateViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
+    [ObservableProperty]
+    private bool _isDirty;
+
     public PromptTemplateType[] TemplateTypes { get; } =
         Enum.GetValues<PromptTemplateType>();
 
@@ -146,6 +149,30 @@ public partial class PromptTemplateViewModel : ViewModelBase
         EditType = PromptTemplateType.System;
         EditContent = string.Empty;
         StatusMessage = string.Empty;
+    }
+
+    [RelayCommand]
+    private void CreateTemplate()
+    {
+        NewTemplate();
+    }
+
+    [RelayCommand]
+    private void Import()
+    {
+    }
+
+    [RelayCommand]
+    private void SelectType(PromptTemplateType? type)
+    {
+        _ = FilterByType(type);
+    }
+
+    [RelayCommand]
+    private void SelectTemplate(PromptTemplate template)
+    {
+        SelectedTemplate = template;
+        IsEditing = false;
     }
 
     [RelayCommand]

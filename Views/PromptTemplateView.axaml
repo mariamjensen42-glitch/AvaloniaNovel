@@ -1,181 +1,139 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
              xmlns:vm="using:AvaloniaNovel.ViewModels"
              xmlns:models="using:AvaloniaNovel.Models"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:fl="using:FluentIcons.Common"
              x:Class="AvaloniaNovel.Views.PromptTemplateView"
              x:DataType="vm:PromptTemplateViewModel">
 
-    <Grid>
-        <ScrollViewer Padding="24" HorizontalScrollBarVisibility="Disabled">
-            <Grid RowDefinitions="Auto,Auto,*" RowSpacing="16">
-
-                <sukiUi:GlassCard Classes="Primary" CornerRadius="20" IsInteractive="False"
-                                  HorizontalAlignment="Stretch">
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="20" Margin="4">
-                        <StackPanel Spacing="6">
-                            <Border Background="#1AFFFFFF" CornerRadius="999" Padding="10,4" HorizontalAlignment="Left">
-                                <TextBlock Text="提示词模板" FontSize="12" FontWeight="SemiBold" />
-                            </Border>
-                            <TextBlock Text="模板管理" FontSize="28" FontWeight="Bold" />
-                            <TextBlock Text="管理系统人设、大纲生成和章节写作的提示词模板。" MaxWidth="520" TextWrapping="Wrap" Opacity="0.78"
-                                       FontSize="13" />
-                        </StackPanel>
-                        <Button Grid.Column="1" Content="+ 新建模板" Command="{Binding NewTemplateCommand}"
-                                Classes="Flat Accent" VerticalAlignment="Center" />
-                    </Grid>
-                </sukiUi:GlassCard>
-
-                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6">
-                    <Button Content="全部" Command="{Binding FilterByTypeCommand}"
-                            IsVisible="{Binding !IsFilterAll}" Classes="Flat" Padding="14,7" />
-                    <Button Content="全部" Command="{Binding FilterByTypeCommand}"
-                            IsVisible="{Binding IsFilterAll}" Classes="Accent" Padding="14,7" />
-                    <Button Content="系统人设" Command="{Binding FilterByTypeCommand}"
-                            CommandParameter="{x:Static models:PromptTemplateType.System}"
-                            IsVisible="{Binding !IsFilterSystem}" Classes="Flat" Padding="14,7" />
-                    <Button Content="系统人设" Command="{Binding FilterByTypeCommand}"
-                            CommandParameter="{x:Static models:PromptTemplateType.System}"
-                            IsVisible="{Binding IsFilterSystem}" Classes="Accent" Padding="14,7" />
-                    <Button Content="大纲生成" Command="{Binding FilterByTypeCommand}"
-                            CommandParameter="{x:Static models:PromptTemplateType.Outline}"
-                            IsVisible="{Binding !IsFilterOutline}" Classes="Flat" Padding="14,7" />
-                    <Button Content="大纲生成" Command="{Binding FilterByTypeCommand}"
-                            CommandParameter="{x:Static models:PromptTemplateType.Outline}"
-                            IsVisible="{Binding IsFilterOutline}" Classes="Accent" Padding="14,7" />
-                    <Button Content="章节写作" Command="{Binding FilterByTypeCommand}"
-                            CommandParameter="{x:Static models:PromptTemplateType.Chapter}"
-                            IsVisible="{Binding !IsFilterChapter}" Classes="Flat" Padding="14,7" />
-                    <Button Content="章节写作" Command="{Binding FilterByTypeCommand}"
-                            CommandParameter="{x:Static models:PromptTemplateType.Chapter}"
-                            IsVisible="{Binding IsFilterChapter}" Classes="Accent" Padding="14,7" />
+    <Grid ColumnDefinitions="340,*">
+        <Border Grid.Column="0" Margin="16" CornerRadius="16"
+                Background="{StaticResource SurfaceColor}"
+                Classes="Card">
+            <DockPanel Margin="16">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,14">
+                    <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Document}" IconVariant="Regular" FontSize="18" Foreground="{StaticResource PrimaryColor}" />
+                    <TextBlock Text="模板管理" FontSize="18" FontWeight="SemiBold" />
                 </StackPanel>
 
-                <Grid Grid.Row="2" ColumnDefinitions="260,*" ColumnSpacing="16">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,14">
+                    <Button Content="新建模板" Command="{Binding CreateTemplateCommand}"
+                            FontSize="13" Padding="12,8" />
+                    <Button Content="导入" Command="{Binding ImportCommand}"
+                            FontSize="13" Padding="12,8" Classes="Secondary" />
+                </StackPanel>
 
-                    <Border Background="{DynamicResource SukiCardBackgroundBrush}" CornerRadius="16" Padding="4">
-                        <ListBox ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate}">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate x:DataType="models:PromptTemplate">
-                                    <StackPanel Spacing="4" Margin="4">
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
-                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"
-                                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                                            <Border IsVisible="{Binding IsBuiltIn}"
-                                                    Background="{DynamicResource SukiAccentColorBrush}"
-                                                    CornerRadius="5" Padding="5,1" Opacity="0.15"
-                                                    VerticalAlignment="Center">
-                                                <TextBlock Text="内置" FontSize="9" FontWeight="SemiBold" />
-                                            </Border>
+                <ScrollViewer>
+                    <ListBox ItemsSource="{Binding Templates}"
+                             SelectedItem="{Binding SelectedTemplate}"
+                             Background="Transparent">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="10" Margin="0,0,0,8" Padding="14,12"
+                                        Background="{StaticResource SurfaceAltColor}"
+                                        Cursor="Hand">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>*,Auto</Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" />
+                                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,4,0,0">
+                                                <Border CornerRadius="4" Padding="4,2"
+                                                        Background="{Binding Type, Converter={x:Static vm:PromptTemplateTypeColorConverter.Instance}}">
+                                                    <TextBlock Text="{Binding Type}" FontSize="10" Foreground="White" />
+                                                </Border>
+                                                <TextBlock Text="{Binding UpdatedAt, StringFormat={}{0:MM/dd}}"
+                                                           FontSize="11" Foreground="{StaticResource TextTertiary}" />
+                                            </StackPanel>
                                         </StackPanel>
-                                        <TextBlock
-                                            Text="{Binding Type, Converter={x:Static vm:PromptTemplateTypeConverter.Instance}}"
-                                            FontSize="11" Opacity="0.6" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </Border>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <Button Command="{Binding $parent[ListBox].((vm:PromptTemplateViewModel)DataContext).SelectTemplateCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Padding="8,4" Classes="Secondary">
+                                                <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Edit}" IconVariant="Regular" FontSize="14" />
+                                            </Button>
+                                            <Button Command="{Binding $parent[ListBox].((vm:PromptTemplateViewModel)DataContext).DeleteTemplateCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Padding="8,4" Classes="Danger">
+                                                <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Delete}" IconVariant="Regular" FontSize="14" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
 
-                    <Border Background="{DynamicResource SukiCardBackgroundBrush}" CornerRadius="16" Padding="20">
-                        <Grid>
+        <Border Grid.Column="1" Margin="0,16,16,16" CornerRadius="16"
+                Background="{StaticResource SurfaceColor}"
+                Classes="Card">
+            <DockPanel Margin="20">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,16">
+                    <TextBlock Text="模板详情" FontSize="22" FontWeight="Bold" />
+                    <Border Height="24" Width="1" Background="{StaticResource BorderColor}" />
+                    <TextBlock Text="{Binding Templates.Count, StringFormat={}{0} 个模板}"
+                               FontSize="14" Foreground="{StaticResource TextSecondary}" />
+                </StackPanel>
 
-                            <StackPanel IsVisible="{Binding IsDetailEmpty}" VerticalAlignment="Center"
-                                        HorizontalAlignment="Center" Spacing="12" Opacity="0.35">
-                                <TextBlock Text="选择左侧模板查看详情" HorizontalAlignment="Center" FontSize="14" />
-                                <Button Content="新建自定义模板" Command="{Binding NewTemplateCommand}" Classes="Outlined"
-                                        HorizontalAlignment="Center" />
+                <ContentControl Content="{Binding SelectedTemplate}">
+                    <ContentControl.DataTemplates>
+                        <DataTemplate DataType="vm:PromptTemplateViewModel">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12" Height="300">
+                                <Border Width="80" Height="80" CornerRadius="40" Background="{StaticResource SurfaceAltColor}">
+                                    <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Info}" IconVariant="Regular" FontSize="40" Foreground="{StaticResource TextTertiary}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Text="请选择或创建一个模板"
+                                           FontSize="16"
+                                           Foreground="{StaticResource TextSecondary}" />
                             </StackPanel>
+                        </DataTemplate>
+                        <DataTemplate DataType="models:PromptTemplate">
+                            <StackPanel Spacing="20">
+                                <Grid RowDefinitions="Auto,Auto" RowSpacing="12">
+                                    <TextBox Grid.Row="0"
+                                             Text="{Binding Name}"
+                                             FontSize="20" FontWeight="Bold"
+                                             PlaceholderText="模板名称" />
+                                    <ComboBox Grid.Row="1"
+                                              ItemsSource="{Binding $parent[ContentControl].((vm:PromptTemplateViewModel)DataContext).TemplateTypes}"
+                                              SelectedItem="{Binding Type}"
+                                              FontSize="14" />
+                                </Grid>
 
-                            <ScrollViewer IsVisible="{Binding IsDetailViewing}" VerticalScrollBarVisibility="Auto">
-                                <StackPanel Spacing="18">
-                                    <StackPanel Spacing="8">
-                                        <TextBlock Text="{Binding SelectedTemplate.Name}" FontSize="20"
-                                                   FontWeight="Bold" />
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <Border Background="{DynamicResource SukiAccentColorBrush}"
-                                                    CornerRadius="6" Padding="9,4" Opacity="0.12">
-                                                <TextBlock
-                                                    Text="{Binding SelectedTemplate.Type, Converter={x:Static vm:PromptTemplateTypeConverter.Instance}}"
-                                                    FontSize="12" FontWeight="SemiBold" />
-                                            </Border>
-                                            <Border IsVisible="{Binding SelectedTemplate.IsBuiltIn}"
-                                                    Background="{DynamicResource SukiBackgroundBrush}" CornerRadius="6"
-                                                    Padding="9,4">
-                                                <TextBlock Text="内置（不可删除）" FontSize="11" Opacity="0.55" />
-                                            </Border>
-                                        </StackPanel>
-                                    </StackPanel>
-
-                                    <Border Background="{DynamicResource SukiBackgroundBrush}" CornerRadius="12"
-                                            Padding="18" MinHeight="260">
-                                        <ScrollViewer HorizontalScrollBarVisibility="Disabled"
-                                                      VerticalScrollBarVisibility="Auto">
-                                            <TextBlock Text="{Binding SelectedTemplate.Content}" TextWrapping="Wrap"
-                                                       FontFamily="Consolas,Menlo,monospace" FontSize="13"
-                                                       LineHeight="22" Opacity="0.88" />
-                                        </ScrollViewer>
-                                    </Border>
-
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Button Content="编辑" Command="{Binding EditTemplateCommand}"
-                                                Classes="Flat Accent" />
-                                        <Button Content="复制" Command="{Binding DuplicateTemplateCommand}"
-                                                Classes="Outlined" />
-                                        <Button Content="删除" Command="{Binding DeleteTemplateCommand}"
-                                                Classes="Outlined" IsVisible="{Binding !SelectedTemplate.IsBuiltIn}" />
-                                    </StackPanel>
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="模板内容" FontWeight="SemiBold" />
+                                    <TextBox Text="{Binding Content}"
+                                             AcceptsReturn="True"
+                                             Height="200"
+                                             PlaceholderText="输入提示词模板内容..."
+                                             FontFamily="Consolas" />
                                 </StackPanel>
-                            </ScrollViewer>
 
-                            <ScrollViewer IsVisible="{Binding IsDetailEditing}" VerticalScrollBarVisibility="Auto">
-                                <StackPanel Spacing="18">
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Text="编辑模板" FontSize="18" FontWeight="SemiBold" />
-                                        <TextBlock Text="{Binding SelectedTemplate.Name, StringFormat={}正在编辑「{0}」}"
-                                                   Opacity="0.5" FontSize="12"
-                                                   IsVisible="{Binding SelectedTemplate, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                                    </StackPanel>
-
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Text="模板名称" FontWeight="SemiBold" FontSize="13" />
-                                        <TextBox Text="{Binding EditName}" Height="40" Watermark="输入模板名称" />
-                                    </StackPanel>
-
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Text="模板类型" FontWeight="SemiBold" FontSize="13" />
-                                        <ComboBox ItemsSource="{Binding TemplateTypes}"
-                                                  SelectedItem="{Binding EditType}" Height="40">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock
-                                                        Text="{Binding Converter={x:Static vm:PromptTemplateTypeConverter.Instance}}" />
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
-                                    </StackPanel>
-
-                                    <StackPanel Spacing="4">
-                                        <TextBlock
-                                            Text="占位符: {{genre}} {{worldSetting}} {{chapterTitle}} {{chapterSummary}} {{previousSummary}}"
-                                            Opacity="0.4" FontSize="11" />
-                                        <TextBox Text="{Binding EditContent}" AcceptsReturn="True" TextWrapping="Wrap"
-                                                 FontFamily="Consolas,Menlo,monospace" FontSize="13" MinHeight="280"
-                                                 Watermark="输入提示词模板内容..." />
-                                    </StackPanel>
-
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Button Content="保存" Command="{Binding SaveTemplateCommand}" Classes="Accent"
-                                                IsEnabled="{Binding !IsSaving}" />
-                                        <Button Content="取消" Command="{Binding CancelEditCommand}" Classes="Flat" />
-                                    </StackPanel>
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="变量说明" FontWeight="SemiBold" />
+                                    <TextBox Text="{Binding Variables}"
+                                             AcceptsReturn="True"
+                                             Height="100"
+                                             PlaceholderText="输入变量说明，每行一个..."
+                                             FontFamily="Consolas" />
                                 </StackPanel>
-                            </ScrollViewer>
-                        </Grid>
-                    </Border>
-                </Grid>
-            </Grid>
-        </ScrollViewer>
+
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button Content="保存修改"
+                                            Command="{Binding $parent[ContentControl].((vm:PromptTemplateViewModel)DataContext).SaveTemplateCommand}"
+                                            IsEnabled="{Binding $parent[ContentControl].((vm:PromptTemplateViewModel)DataContext).IsDirty}" />
+                                    <Button Content="取消"
+                                            Command="{Binding $parent[ContentControl].((vm:PromptTemplateViewModel)DataContext).CancelEditCommand}"
+                                            Classes="Secondary" />
+                                </StackPanel>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ContentControl.DataTemplates>
+                </ContentControl>
+            </DockPanel>
+        </Border>
     </Grid>
 </UserControl>
-

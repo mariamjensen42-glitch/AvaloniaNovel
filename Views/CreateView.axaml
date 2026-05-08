@@ -2,91 +2,100 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:AvaloniaNovel.ViewModels"
              xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia"
+             xmlns:ic="using:FluentIcons.Avalonia"
+             xmlns:fl="using:FluentIcons.Common"
              x:Class="AvaloniaNovel.Views.CreateView"
              x:DataType="vm:CreateViewModel">
 
     <DockPanel>
-        <!-- ── 顶部工具栏 ───────────────────────────────────────────── -->
-        <Border DockPanel.Dock="Top" Background="{DynamicResource SukiCardBackgroundBrush}"
-                Padding="16,12" Margin="0">
-            <Grid RowDefinitions="Auto,Auto,Auto,Auto">
-                <!-- 标题 + 按钮行 -->
-                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="8,0,8,12">
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+        <Border DockPanel.Dock="Top"
+                Padding="20,14" Margin="0"
+                Background="{StaticResource SurfaceColor}">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000" BlurRadius="8" Opacity="0.06" OffsetY="2" />
+            </Border.Effect>
+            <Grid RowDefinitions="Auto,Auto,Auto">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
                         <TextBlock Text="{Binding CurrentNovel.Title, FallbackValue='未选择小说'}"
-                                   FontSize="24" FontWeight="Bold" VerticalAlignment="Center" />
-                        <TextBlock Text="{Binding SelectedChapter.Order, StringFormat={}第 {0} 章}"
-                                   FontSize="16" Foreground="{DynamicResource SukiTextColorBrush}"
-                                   VerticalAlignment="Center" Margin="8,0,0,0"
-                                   IsVisible="{Binding SelectedChapter, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                   FontSize="26" FontWeight="Bold" VerticalAlignment="Center" />
+                        <Border Background="{StaticResource PrimaryColor}" Opacity="0.1" CornerRadius="999" Padding="10,5" Margin="4,0,0,0">
+                            <TextBlock Text="{Binding SelectedChapter.Order, StringFormat={}第 {0} 章}"
+                                       FontSize="14" Foreground="{StaticResource PrimaryColor}"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding SelectedChapter, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                        </Border>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                         <Button Content="生成大纲" Command="{Binding GenerateOutlineCommand}"
-                                IsEnabled="{Binding !IsWriting}" Classes="Flat" />
+                                IsEnabled="{Binding !IsWriting}" />
                         <Button Content="开始写作" Command="{Binding StartWritingCommand}"
                                 IsEnabled="{Binding !IsWriting}" />
                         <Button Content="停止" Command="{Binding StopWritingCommand}"
-                                IsEnabled="{Binding IsWriting}" Classes="Flat" />
+                                IsEnabled="{Binding IsWriting}"
+                                Classes="Danger" />
                         <Button Content="重写本章" Command="{Binding RewriteChapterCommand}"
                                 IsEnabled="{Binding !IsWriting}"
-                                Classes="Flat" />
+                                Classes="Secondary" />
                         <Button Content="保存快照" Command="{Binding SaveSnapshotCommand}"
-                                Classes="Flat" />
-                        <Button Content="导出" Command="{Binding ExportCommand}" Classes="Flat" />
-                        <Button Content="📝模板" Command="{Binding ToggleTemplatePanelCommand}"
-                                Classes="Flat" />
+                                Classes="Secondary" />
+                        <Button Content="导出" Command="{Binding ExportCommand}"
+                                Classes="Secondary" />
+                        <Button Content="模板" Command="{Binding ToggleTemplatePanelCommand}"
+                                Classes="Secondary" />
                     </StackPanel>
                 </Grid>
 
-                <!-- 进度条 -->
-                <Grid Grid.Row="1" Margin="8,0,8,4">
+                <Border Grid.Row="1" CornerRadius="8" Margin="0,0,0,12"
+                        Background="{StaticResource SurfaceAltColor}" Height="6">
                     <ProgressBar IsIndeterminate="True"
-                                 Height="3"
+                                 Height="6" CornerRadius="4"
                                  IsVisible="{Binding IsWriting}" />
-                </Grid>
+                </Border>
 
-                <!-- 剧情干预面板 -->
-                <Border Grid.Row="2" Background="{DynamicResource SukiBackgroundBrush}"
-                        CornerRadius="10" Padding="14" Margin="8,0,8,8">
+                <Border Grid.Row="2" CornerRadius="12" Padding="16"
+                        Background="{StaticResource SurfaceAltColor}">
                     <Grid RowDefinitions="Auto,Auto">
                         <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                             <TextBox Grid.Column="0"
                                      Text="{Binding InstructionText}"
-                                     Watermark="输入剧情调整指令，如：让主角失忆、加入穿越元素..."
+                                     PlaceholderText="输入剧情调整指令，如：让主角失忆、加入穿越元素..."
                                      VerticalAlignment="Center" />
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="8,0,0,0">
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="12,0,0,0">
                                 <Button Content="发送指令" Command="{Binding SendInstructionCommand}"
                                         IsEnabled="{Binding !IsWriting}" />
                                 <Button Content="历史版本" Command="{Binding ToggleVersionPanelCommand}"
-                                        Classes="Flat" />
+                                        Classes="Secondary" />
                             </StackPanel>
                         </Grid>
 
-                        <!-- 版本历史抽屉 -->
                         <Border Grid.Row="1" IsVisible="{Binding ShowVersionPanel}"
-                                Background="{DynamicResource SukiCardBackgroundBrush}"
-                                CornerRadius="8" Margin="0,8,0,0" Padding="12">
+                                CornerRadius="10" Margin="0,12,0,0" Padding="16"
+                                Background="{StaticResource SurfaceColor}">
                             <DockPanel>
-                                <TextBlock DockPanel.Dock="Top" Text="版本历史" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8" />
-                                <ScrollViewer MaxHeight="150">
+                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+                                    <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Clock}" IconVariant="Regular" FontSize="16" Foreground="{StaticResource PrimaryColor}" />
+                                    <TextBlock Text="版本历史" FontSize="15" FontWeight="SemiBold" />
+                                </StackPanel>
+                                <ScrollViewer MaxHeight="180">
                                     <ItemsControl ItemsSource="{Binding Versions}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Background="{DynamicResource SukiBackgroundBrush}"
-                                                        CornerRadius="4" Padding="8" Margin="0,0,0,4">
+                                                <Border CornerRadius="8" Padding="12" Margin="0,0,0,6"
+                                                        Background="{StaticResource SurfaceAltColor}">
                                                     <Grid ColumnDefinitions="*,Auto,Auto">
                                                         <StackPanel Grid.Column="0">
                                                             <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:MM/dd HH:mm}}"
-                                                                       FontSize="11" Opacity="0.7" />
-                                                            <TextBlock Text="{Binding Trigger}" FontSize="12" />
+                                                                       FontSize="12" Foreground="{StaticResource TextTertiary}" />
+                                                            <TextBlock Text="{Binding Trigger}" FontSize="13" />
                                                         </StackPanel>
                                                         <TextBlock Grid.Column="1" Text="{Binding WordCount, StringFormat={}{0} 字}"
-                                                                   FontSize="11" Opacity="0.6" VerticalAlignment="Center" Margin="8,0" />
-                                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+                                                                   FontSize="12" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" Margin="12,0" />
+                                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
                                                             <Button Content="查看" Command="{Binding $parent[ItemsControl].((vm:CreateViewModel)DataContext).ViewVersionCommand}"
-                                                                    CommandParameter="{Binding}" Classes="Flat" FontSize="11" Padding="6,2" />
+                                                                    CommandParameter="{Binding}" FontSize="11" Padding="8,4" Classes="Secondary" />
                                                             <Button Content="回滚" Command="{Binding $parent[ItemsControl].((vm:CreateViewModel)DataContext).RollbackVersionCommand}"
-                                                                    CommandParameter="{Binding}" Classes="Flat" FontSize="11" Padding="6,2" />
+                                                                    CommandParameter="{Binding}" FontSize="11" Padding="8,4" />
                                                         </StackPanel>
                                                     </Grid>
                                                 </Border>
@@ -99,20 +108,21 @@
                     </Grid>
                 </Border>
 
-                <!-- 模板选择面板（可折叠） -->
                 <Border Grid.Row="3" IsVisible="{Binding ShowTemplatePanel}"
-                        Background="{DynamicResource SukiBackgroundBrush}"
-                        CornerRadius="10" Padding="14" Margin="8,0,8,8">
-                    <StackPanel Spacing="10">
-                        <TextBlock Text="提示词模板选择" FontSize="13" FontWeight="SemiBold" Opacity="0.8" />
-                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
-                            <!-- 系统人设 -->
-                            <StackPanel Grid.Column="0" Spacing="4">
-                                <TextBlock Text="系统人设" FontSize="12" Opacity="0.7" />
+                        CornerRadius="12" Padding="16" Margin="0,12,0,0"
+                        Background="{StaticResource SurfaceAltColor}">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Document}" IconVariant="Regular" FontSize="16" Foreground="{StaticResource PrimaryColor}" />
+                            <TextBlock Text="提示词模板选择" FontSize="15" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="16">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="系统人设" FontSize="13" Foreground="{StaticResource TextSecondary}" />
                                 <ComboBox ItemsSource="{Binding SystemTemplates}"
                                           SelectedItem="{Binding SelectedSystemTemplate}"
                                           HorizontalAlignment="Stretch"
-                                          MinWidth="120">
+                                          MinWidth="140">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Name}" />
@@ -120,13 +130,12 @@
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                             </StackPanel>
-                            <!-- 大纲模板 -->
-                            <StackPanel Grid.Column="1" Spacing="4">
-                                <TextBlock Text="大纲生成" FontSize="12" Opacity="0.7" />
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <TextBlock Text="大纲生成" FontSize="13" Foreground="{StaticResource TextSecondary}" />
                                 <ComboBox ItemsSource="{Binding OutlineTemplates}"
                                           SelectedItem="{Binding SelectedOutlineTemplate}"
                                           HorizontalAlignment="Stretch"
-                                          MinWidth="120">
+                                          MinWidth="140">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Name}" />
@@ -134,13 +143,12 @@
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                             </StackPanel>
-                            <!-- 章节模板 -->
-                            <StackPanel Grid.Column="2" Spacing="4">
-                                <TextBlock Text="章节写作" FontSize="12" Opacity="0.7" />
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="章节写作" FontSize="13" Foreground="{StaticResource TextSecondary}" />
                                 <ComboBox ItemsSource="{Binding ChapterTemplates}"
                                           SelectedItem="{Binding SelectedChapterTemplate}"
                                           HorizontalAlignment="Stretch"
-                                          MinWidth="120">
+                                          MinWidth="140">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Name}" />
@@ -152,80 +160,91 @@
                     </StackPanel>
                 </Border>
 
-                <!-- 流式写作字数提示 -->
-                <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8" Margin="8,0,8,0"
+                <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="10" Margin="0,12,0,0"
                             IsVisible="{Binding IsStreaming}">
-                    <TextBlock Text="✍️ 正在生成..." FontSize="12"
-                               Foreground="{DynamicResource SukiAccentColorBrush}"
+                    <Border Width="24" Height="24" CornerRadius="12" Background="{StaticResource PrimaryColor}" Opacity="0.1">
+                        <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Flash}" IconVariant="Regular" FontSize="14" Foreground="{StaticResource PrimaryColor}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock Text="正在生成..." FontSize="14"
+                               Foreground="{StaticResource PrimaryColor}"
                                VerticalAlignment="Center" />
                     <TextBlock Text="{Binding CurrentWordCount, StringFormat={}{0} 字}"
-                               FontSize="12" FontWeight="SemiBold"
-                               Foreground="{DynamicResource SukiAccentColorBrush}"
+                               FontSize="14" FontWeight="Bold"
+                               Foreground="{StaticResource PrimaryColor}"
                                VerticalAlignment="Center" />
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- ── 底部状态栏 ───────────────────────────────────────────── -->
         <Border IsVisible="{Binding StatusMessage, Converter={x:Static vm:StringNullOrEmptyConverter.Instance}}"
-                DockPanel.Dock="Bottom" Background="{DynamicResource SukiCardBackgroundBrush}"
-                Padding="16,8">
-            <TextBlock Text="{Binding StatusMessage}"
-                       Foreground="{DynamicResource SukiAccentColorBrush}"
-                       HorizontalAlignment="Center" />
+                DockPanel.Dock="Bottom" Padding="16,10"
+                Background="{StaticResource SurfaceColor}">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000" BlurRadius="8" Opacity="0.06" OffsetY="-2" />
+            </Border.Effect>
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Info}" IconVariant="Regular" FontSize="16" Foreground="{StaticResource PrimaryColor}" />
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="{StaticResource PrimaryColor}"
+                           FontSize="14" />
+            </StackPanel>
         </Border>
 
-        <!-- ── 主体：章节列表 + 内容区 ─────────────────────────────── -->
-        <Grid ColumnDefinitions="320,*">
-            <!-- 章节列表 -->
-            <Border Grid.Column="0" Margin="12" CornerRadius="8"
-                    Background="{DynamicResource SukiCardBackgroundBrush}">
-                <DockPanel Margin="12">
-                    <TextBlock DockPanel.Dock="Top" Text="章节列表" FontSize="16" FontWeight="SemiBold"
-                               Margin="0,0,0,12" />
-                    <ListBox ItemsSource="{Binding Chapters}"
-                             SelectedItem="{Binding SelectedChapter}"
-                             Background="Transparent">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="{DynamicResource SukiBackgroundBrush}"
-                                        CornerRadius="6" Margin="0,0,0,6" Padding="12,10">
-                                    <Grid RowDefinitions="Auto,Auto,Auto">
-                                        <TextBlock Grid.Row="0" Text="{Binding Title}" FontWeight="SemiBold"
-                                                   TextWrapping="Wrap" />
-                                        <TextBlock Grid.Row="1" Text="{Binding Summary}"
-                                                   Foreground="{DynamicResource SukiTextColorBrush}"
-                                                   TextWrapping="Wrap" Margin="0,4,0,0"
-                                                   MaxHeight="36" TextTrimming="CharacterEllipsis"
-                                                   FontSize="12" />
-                                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
-                                            <Border Background="{DynamicResource SukiAccentColorBrush}"
-                                                    CornerRadius="3" Padding="6,2">
-                                                <TextBlock Text="{Binding Status}" FontSize="10"
-                                                           Foreground="White" />
-                                            </Border>
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+        <Grid ColumnDefinitions="340,*">
+            <Border Grid.Column="0" Margin="16" CornerRadius="16"
+                    Background="{StaticResource SurfaceColor}"
+                    Classes="Card">
+                <DockPanel Margin="16">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,14">
+                        <ic:SymbolIcon Symbol="{x:Static fl:Symbol.List}" IconVariant="Regular" FontSize="18" Foreground="{StaticResource PrimaryColor}" />
+                        <TextBlock Text="章节列表" FontSize="18" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <ScrollViewer MaxHeight="400">
+                        <ListBox ItemsSource="{Binding Chapters}"
+                                 SelectedItem="{Binding SelectedChapter}"
+                                 Background="Transparent">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="10" Margin="0,0,0,8" Padding="14,12"
+                                            Background="{StaticResource SurfaceAltColor}"
+                                            Cursor="Hand">
+                                        <Grid RowDefinitions="Auto,Auto,Auto">
+                                            <TextBlock Grid.Row="0" Text="{Binding Title}" FontWeight="SemiBold"
+                                                       TextWrapping="Wrap" FontSize="14" />
+                                            <TextBlock Grid.Row="1" Text="{Binding Summary}"
+                                                       Foreground="{StaticResource TextSecondary}"
+                                                       TextWrapping="Wrap" Margin="0,6,0,0"
+                                                       MaxHeight="40" TextTrimming="CharacterEllipsis"
+                                                       FontSize="12" />
+                                            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6" Margin="0,8,0,0">
+                                                <Border CornerRadius="6" Padding="8,4"
+                                                        Background="{Binding Status, Converter={x:Static vm:ChapterStatusColorConverter.Instance}}">
+                                                    <TextBlock Text="{Binding Status}" FontSize="11"
+                                                               Foreground="White" />
+                                                </Border>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </ScrollViewer>
                 </DockPanel>
             </Border>
 
-            <!-- 内容区：Markdown 实时渲染 -->
-            <Border Grid.Column="1" Margin="0,12,12,12" CornerRadius="8"
-                    Background="{DynamicResource SukiCardBackgroundBrush}">
-                <ScrollViewer Name="ContentScrollViewer" Padding="20">
-                    <StackPanel Spacing="16">
+            <Border Grid.Column="1" Margin="0,16,16,16" CornerRadius="16"
+                    Background="{StaticResource SurfaceColor}"
+                    Classes="Card">
+                <ScrollViewer Name="ContentScrollViewer" Padding="24">
+                    <StackPanel Spacing="20">
                         <StackPanel Spacing="8">
                             <TextBlock Text="{Binding SelectedChapter.Title, FallbackValue='选择章节开始创作'}"
-                                       FontSize="22" FontWeight="Bold" TextWrapping="Wrap" />
-                            <Border Height="1" Background="{DynamicResource SukiTextColorBrush}"
-                                    Opacity="0.2" Margin="0,4" />
+                                       FontSize="26" FontWeight="Bold" TextWrapping="Wrap" />
+                            <Border Height="2"
+                                    Background="{StaticResource BorderColor}"
+                                    Opacity="0.3" />
                         </StackPanel>
 
-                        <!-- Markdown 渲染器：通过 code-behind 绑定 MarkdownBuilder -->
                         <md:MarkdownRenderer Name="ContentRenderer" />
                     </StackPanel>
                 </ScrollViewer>

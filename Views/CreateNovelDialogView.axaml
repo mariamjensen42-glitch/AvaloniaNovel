@@ -1,117 +1,80 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:theme="clr-namespace:SukiUI.Theme;assembly=SukiUI"
-             xmlns:vm="using:AvaloniaNovel.ViewModels"
-             x:Class="AvaloniaNovel.Views.CreateNovelDialogView"
-             x:DataType="vm:BookshelfViewModel">
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:AvaloniaNovel.ViewModels"
+        xmlns:ic="using:FluentIcons.Avalonia"
+        xmlns:fl="using:FluentIcons.Common"
+        x:Class="AvaloniaNovel.Views.CreateNovelDialogView"
+        x:DataType="vm:BookshelfViewModel"
+        Title="新建小说"
+        Width="480"
+        Height="520"
+        WindowStartupLocation="CenterOwner">
 
-    <Grid ColumnDefinitions="220,*"
-          ColumnSpacing="24"
-          Width="760">
-        <Border Grid.Column="0"
-                Background="{DynamicResource SukiCardBackgroundBrush}"
-                CornerRadius="22"
-                Padding="18">
-            <StackPanel Spacing="14">
-                <TextBlock Text="封面"
-                           FontSize="20"
-                           FontWeight="Bold" />
+    <Grid Margin="24">
+        <StackPanel Spacing="20">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <ic:SymbolIcon Symbol="{x:Static fl:Symbol.Book}" IconVariant="Regular" FontSize="24"
+                               Foreground="{StaticResource PrimaryColor}" />
+                <TextBlock Text="新建小说" FontSize="26" FontWeight="Bold" />
+            </StackPanel>
 
-                <Border Height="292"
-                        CornerRadius="18"
-                        ClipToBounds="True"
-                        Background="{DynamicResource SukiBackgroundBrush}">
-                    <Grid>
-                        <Image Source="{Binding NewNovelCoverPreview}"
-                               Stretch="UniformToFill" />
-                        <StackPanel HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Spacing="8">
-                            <TextBlock Text="封面预览"
-                                       HorizontalAlignment="Center"
-                                       FontSize="18"
-                                       FontWeight="Bold">
-                                <TextBlock.IsVisible>
-                                    <Binding Path="HasNewNovelCover"
-                                             Converter="{x:Static vm:InverseBoolConverter.Instance}" />
-                                </TextBlock.IsVisible>
-                            </TextBlock>
-                            <TextBlock Text="建议选择竖版图片，视觉效果会更好。"
-                                       HorizontalAlignment="Center"
-                                       Opacity="0.7">
-                                <TextBlock.IsVisible>
-                                    <Binding Path="HasNewNovelCover"
-                                             Converter="{x:Static vm:InverseBoolConverter.Instance}" />
-                                </TextBlock.IsVisible>
-                            </TextBlock>
+            <StackPanel Spacing="10">
+                <TextBlock Text="小说标题" FontWeight="SemiBold" />
+                <TextBox Text="{Binding NewNovelTitle}"
+                         Height="44"
+                         PlaceholderText="输入小说标题" />
+            </StackPanel>
+
+            <StackPanel Spacing="10">
+                <TextBlock Text="题材" FontWeight="SemiBold" />
+                <ComboBox ItemsSource="{Binding GenreOptions}"
+                          SelectedItem="{Binding NewNovelGenre}"
+                          Height="44" />
+            </StackPanel>
+
+            <StackPanel Spacing="10">
+                <TextBlock Text="世界观设定" FontWeight="SemiBold" />
+                <TextBox Text="{Binding NewNovelWorldSetting}"
+                         AcceptsReturn="True"
+                         Height="100"
+                         PlaceholderText="输入世界观设定..." />
+            </StackPanel>
+
+            <StackPanel Spacing="10">
+                <TextBlock Text="封面图片" FontWeight="SemiBold" />
+                <Border CornerRadius="12"
+                        Background="{StaticResource SurfaceAltColor}"
+                        Padding="16"
+                        Height="140">
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <Border Width="100" Height="108" CornerRadius="8"
+                                Background="{StaticResource SurfaceColor}"
+                                ClipToBounds="True">
+                            <Image Source="{Binding NewNovelCoverPreview}"
+                                   Stretch="UniformToFill" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="8">
+                            <Button Content="上传封面"
+                                    Command="{Binding SelectCoverCommand}"
+                                    Padding="12,8" />
+                            <Button Content="清除"
+                                    Command="{Binding ClearCoverCommand}"
+                                    IsEnabled="{Binding NewNovelCoverPreview, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Padding="12,8"
+                                    Classes="Secondary" />
                         </StackPanel>
-                    </Grid>
+                    </StackPanel>
                 </Border>
-
-                <Button Content="上传封面"
-                        Command="{Binding SelectCoverCommand}"
-                        Classes="Flat Accent" />
-                <Button Content="清除封面"
-                        Command="{Binding ClearCoverCommand}"
-                        Classes="Outlined" />
-                <TextBlock Text="{Binding NewNovelCoverDisplayName}"
-                           TextWrapping="Wrap"
-                           Opacity="0.74" />
-            </StackPanel>
-        </Border>
-
-        <StackPanel Grid.Column="1"
-                    Spacing="18">
-            <StackPanel Spacing="6">
-                <TextBlock Text="新建小说"
-                           FontSize="28"
-                           FontWeight="Bold" />
-                <TextBlock Text="补齐标题、题材、世界观和封面后，这本书会以作品卡片的形式出现在书架里。"
-                           Opacity="0.72"
-                           TextWrapping="Wrap" />
             </StackPanel>
 
-            <StackPanel Spacing="12">
-                <StackPanel Spacing="6">
-                    <TextBlock Text="小说标题"
-                               FontWeight="SemiBold" />
-                    <TextBox Text="{Binding NewNovelTitle}"
-                             Height="42"
-                             Watermark="例如：星海尽头的拾荒者"
-                             theme:TextBoxExtensions.AddDeleteButton="True" />
-                </StackPanel>
-
-                <StackPanel Spacing="6">
-                    <TextBlock Text="题材"
-                               FontWeight="SemiBold" />
-                    <ComboBox ItemsSource="{Binding GenreOptions}"
-                              SelectedItem="{Binding NewNovelGenre}"
-                              Height="42" />
-                </StackPanel>
-
-                <StackPanel Spacing="6">
-                    <TextBlock Text="世界观设定"
-                               FontWeight="SemiBold" />
-                    <TextBox Text="{Binding NewNovelWorldSetting}"
-                             Watermark="描述小说所在的世界背景、核心规则、时代气质和主要冲突..."
-                             AcceptsReturn="True"
-                             TextWrapping="Wrap"
-                             Height="166"
-                             theme:TextBoxExtensions.AddDeleteButton="True" />
-                </StackPanel>
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal"
-                        Spacing="12"
-                        HorizontalAlignment="Right"
-                        Margin="0,6,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                 <Button Content="取消"
                         Command="{Binding CancelDialogCommand}"
-                        Classes="Outlined" />
-                <Button Content="创建作品"
+                        Classes="Secondary" />
+                <Button Content="创建"
                         Command="{Binding CreateNovelCommand}"
-                        Classes="Flat Accent" />
+                        IsEnabled="{Binding NewNovelTitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
             </StackPanel>
         </StackPanel>
     </Grid>
-</UserControl>
+</Window>

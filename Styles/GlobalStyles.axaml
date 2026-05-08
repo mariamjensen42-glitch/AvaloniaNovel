@@ -1,0 +1,199 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <StackPanel Spacing="12">
+                <Button Content="示例按钮" />
+                <TextBox PlaceholderText="示例输入框" />
+                <ComboBox>
+                    <ComboBoxItem>选项1</ComboBoxItem>
+                    <ComboBoxItem>选项2</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <Style>
+        <Style.Resources>
+            <SolidColorBrush x:Key="PrimaryColor" Color="#42B883" />
+            <SolidColorBrush x:Key="PrimaryLight" Color="#66C99B" />
+            <SolidColorBrush x:Key="PrimaryDark" Color="#359A6C" />
+            <SolidColorBrush x:Key="SecondaryColor" Color="#5E9FD8" />
+            <SolidColorBrush x:Key="AccentColor" Color="#F4A261" />
+            <SolidColorBrush x:Key="WarningColor" Color="#E9C46A" />
+            <SolidColorBrush x:Key="DangerColor" Color="#E07A5F" />
+            <SolidColorBrush x:Key="SurfaceColor" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SurfaceAltColor" Color="#F5F9F7" />
+            <SolidColorBrush x:Key="SurfaceHoverColor" Color="#EBF5F0" />
+            <SolidColorBrush x:Key="BorderColor" Color="#D8E8E0" />
+            <SolidColorBrush x:Key="BorderFocusColor" Color="#42B883" />
+            <SolidColorBrush x:Key="TextPrimary" Color="#2D3E50" />
+            <SolidColorBrush x:Key="TextSecondary" Color="#5A6C7D" />
+            <SolidColorBrush x:Key="TextTertiary" Color="#8FA3B3" />
+        </Style.Resources>
+    </Style>
+
+    <Style Selector="TextBlock">
+        <Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI, sans-serif" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
+    </Style>
+
+    <Style Selector="Button">
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Padding" Value="20,12" />
+        <Setter Property="Background" Value="{StaticResource PrimaryColor}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="#42B883" BlurRadius="10" Opacity="0.15" OffsetY="4" />
+        </Setter>
+    </Style>
+
+    <Style Selector="Button:pointerover">
+        <Setter Property="Background" Value="{StaticResource PrimaryLight}" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="#42B883" BlurRadius="15" Opacity="0.2" OffsetY="6" />
+        </Setter>
+    </Style>
+
+    <Style Selector="Button:pressed">
+        <Setter Property="Background" Value="{StaticResource PrimaryDark}" />
+        <Setter Property="Opacity" Value="0.95" />
+    </Style>
+
+    <Style Selector="Button.Secondary">
+        <Setter Property="Background" Value="{StaticResource SurfaceAltColor}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderColor}" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="Effect" Value="{x:Null}" />
+    </Style>
+
+    <Style Selector="Button.Secondary:pointerover">
+        <Setter Property="Background" Value="{StaticResource SurfaceHoverColor}" />
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryColor}" />
+    </Style>
+
+    <Style Selector="Button.Danger">
+        <Setter Property="Background" Value="{StaticResource DangerColor}" />
+    </Style>
+
+    <Style Selector="Button.Danger:pointerover">
+        <Setter Property="Background" Value="#C86A4F" />
+    </Style>
+
+    <Style Selector="TextBox">
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Background" Value="{StaticResource SurfaceColor}" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderColor}" />
+        <Setter Property="Padding" Value="16,14" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="PlaceholderForeground" Value="{StaticResource TextTertiary}" />
+    </Style>
+
+    <Style Selector="TextBox:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource BorderFocusColor}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="#42B883" BlurRadius="12" Opacity="0.12" />
+        </Setter>
+    </Style>
+
+    <Style Selector="ComboBox">
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Background" Value="{StaticResource SurfaceColor}" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderColor}" />
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <Style Selector="ComboBox:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource BorderFocusColor}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
+
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="6" />
+    </Style>
+
+    <Style Selector="ListBoxItem">
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Margin" Value="4" />
+    </Style>
+
+    <Style Selector="ListBoxItem:pointerover">
+        <Setter Property="Background" Value="{StaticResource SurfaceHoverColor}" />
+    </Style>
+
+    <Style Selector="ListBoxItem:selected">
+        <Setter Property="Background" Value="{StaticResource PrimaryColor}" />
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <Style Selector="ScrollViewer">
+        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+    </Style>
+
+    <Style Selector="ScrollBar">
+        <Setter Property="Width" Value="6" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="3" />
+    </Style>
+
+    <Style Selector="ScrollBar Thumb">
+        <Setter Property="Background" Value="{StaticResource BorderColor}" />
+        <Setter Property="CornerRadius" Value="3" />
+    </Style>
+
+    <Style Selector="ScrollBar Thumb:pointerover">
+        <Setter Property="Background" Value="{StaticResource TextTertiary}" />
+    </Style>
+
+    <Style Selector="Border.Card">
+        <Setter Property="CornerRadius" Value="24" />
+        <Setter Property="Background" Value="{StaticResource SurfaceColor}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderColor}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Effect">
+            <DropShadowEffect Color="#42B883" BlurRadius="15" Opacity="0.08" OffsetY="4" />
+        </Setter>
+    </Style>
+
+    <Style Selector="Border.Card:pointerover">
+        <Setter Property="Effect">
+            <DropShadowEffect Color="#42B883" BlurRadius="20" Opacity="0.12" OffsetY="6" />
+        </Setter>
+    </Style>
+
+    <Style Selector="ProgressBar">
+        <Setter Property="Height" Value="6" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryColor}" />
+        <Setter Property="Background" Value="{StaticResource SurfaceHoverColor}" />
+    </Style>
+
+    <Style Selector="ProgressBar:indeterminate">
+        <Setter Property="Foreground">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                <GradientStop Color="#42B883" Offset="0" />
+                <GradientStop Color="#5E9FD8" Offset="1" />
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+</Styles>

@@ -9,7 +9,7 @@ AINovelFlow
 Windows Desktop Application (Avalonia .NET)
 
 ### Core Feature Summary
-基于章节流水线的半自动网文创作工具，用户设定题材和世界观后，AI 持续自动写作，用户可中途干预调整剧情走向。
+基于章节流水线的半自动网文创作工具，用户设定题材和世界观后，AI 持续自动写作，用户可中途干预调整剧情走向。支持自定义 Prompt 模板和章节版本管理。
 
 ### Target Users
 写作爱好者 — 娱乐性创作，不知道写什么，AI 写自己看。
@@ -48,18 +48,25 @@ Windows Desktop Application (Avalonia .NET)
 │  • StreamingBuilder (流式缓冲)              │
 │  • CancellationTokenSource (停止写作)       │
 │  • StreamingContentUpdated (自动滚动事件)   │
+│  • PromptTemplateViewModel (模板管理)       │
+│  • ChapterVersion (版本管理)                │
 └─────────────────┬───────────────────────────┘
                   │
 ┌─────────────────▼───────────────────────────┐
 │                Services                      │
 │  ┌─────────────┐  ┌─────────────────────┐  │
 │  │ LLMService  │  │   StoryService      │  │
-│  │ (SK+DeepSeek│  │   (大纲+章节+流式)  │  │
-│  │ 普通+流式)  │  │                     │  │
+│  │ (SK+DeepSeek│  │   (大纲+章节+重写   │  │
+│  │ 普通+流式)  │  │   +模板渲染)        │  │
 │  └─────────────┘  └─────────────────────┘  │
 │  ┌─────────────┐  ┌─────────────────────┐  │
-│  │StorageService│  │  DatabaseService   │  │
-│  │   (JSON)    │  │   (EF Core)        │  │
+│  │DatabaseService│ │  CoverImageService │  │
+│  │ (EF Core    │  │  (封面选择+存储)   │  │
+│  │  +模板+版本) │  │                     │  │
+│  └─────────────┘  └─────────────────────┘  │
+│  ┌─────────────┐  ┌─────────────────────┐  │
+│  │DialogManager│  │  ExportService      │  │
+│  │ (对话框管理)│  │  (TXT 导出)        │  │
 │  └─────────────┘  └─────────────────────┘  │
 └─────────────────────────────────────────────┘
 ```
@@ -76,7 +83,8 @@ Windows Desktop Application (Avalonia .NET)
 | Title | string | 小说标题 |
 | Genre | string | 题材类型 |
 | WorldSetting | string | 世界观设定 |
-| Outline | string | 大纲（JSON 格式） |
+| CoverImagePath | string | 封面图片路径 |
+| HasCoverImage | bool | 是否有封面（计算属性） |
 | CreatedAt | DateTime | 创建时间 |
 | UpdatedAt | DateTime | 更新时间 |
 | Chapters | List\<Chapter\> | 章节列表 |
@@ -93,6 +101,7 @@ Windows Desktop Application (Avalonia .NET)
 | Content | string | 章节正文 |
 | Status | ChapterStatus | 状态 |
 | CreatedAt | DateTime | 创建时间 |
+| Versions | List\<ChapterVersion\> | 版本列表 |
 
 ### 4.3 ChapterStatus（枚举）
 
@@ -106,15 +115,47 @@ public enum ChapterStatus
 }
 ```
 
-### 4.4 AppSettings（应用设置）
+### 4.4 ChapterVersion（章节版本）
+
+| Field | Type | Description |
+|-------|------|-------------|
+| Id | int | 主键 |
+| ChapterId | int | 所属章节外键 |
+| Content | string | 版本内容 |
+| WordCount | int | 字数 |
+| Trigger | string | 触发类型（auto-save / manual-save / rewrite） |
+| CreatedAt | DateTime | 创建时间 |
+
+### 4.5 PromptTemplate（提示词模板）
+
+| Field | Type | Description |
+|-------|------|-------------|
+| Id | int | 主键 |
+| Name | string | 模板名称 |
+| Type | PromptTemplateType | 模板类型 |
+| Content | string | 模板内容（支持 Mustache 风格占位符） |
+| Variables | string | 变量说明 |
+| IsBuiltIn | bool | 是否为内置默认模板（不可删除） |
+| CreatedAt | DateTime | 创建时间 |
+| UpdatedAt | DateTime | 更新时间 |
+
+### 4.6 PromptTemplateType（枚举）
+
+```csharp
+public enum PromptTemplateType
+{
+    System = 0,       // 系统人设（SystemPrompt）
+    Outline = 1,      // 大纲生成
+    Chapter = 2       // 章节写作
+}
+```
+
+### 4.7 AppSettings（应用设置）
 
 | Field | Type | Description |
 |-------|------|-------------|
 | Id | int | 主键 |
 | DeepSeekApiKey | string | API 密钥 |
-| DeepSeekEndpoint | string | API 端点 |
-| DefaultModel | string | 默认模型 |
-| DefaultGenre | string | 默认题材 |
 
 ---
 
@@ -122,9 +163,9 @@ public enum ChapterStatus
 
 ### 5.1 项目管理
 
-- **新建小说**：输入标题、选择题材、填写世界观设定
-- **小说列表**：展示所有小说，显示标题、题材、章节数、更新时间
-- **删除小说**：确认后删除
+- **新建小说**：输入标题、选择题材、填写世界观设定、选择封面图片
+- **小说列表**：展示所有小说，显示标题、题材、章节数、更新时间、封面
+- **删除小说**：确认后删除（同时删除封面图片）
 - **打开小说**：加载并进入创作界面
 
 ### 5.2 创作流程（Chapter Pipeline）
@@ -136,6 +177,8 @@ AI 根据用户输入的题材和世界观，生成：
 - **章节列表**：10-20 章的章节标题
 - **章节概要**：每章 50-100 字的简要描述
 - **全局大纲**：整体故事主线
+
+支持选择不同的大纲生成模板（通用、爽文节奏、悬疑、言情等）。
 
 ```json
 {
@@ -156,37 +199,65 @@ AI 根据用户输入的题材和世界观，生成：
 - **Markdown 实时渲染**：基于 `ObservableStringBuilder` + `LiveMarkdown.Avalonia`，每收到 token 即解析渲染
 - **自动滚动**：流式输出时内容区自动滚动到最新位置
 - **停止写作**：通过 `CancellationTokenSource` 随时中断，已生成内容自动保存
+- **自动保存版本**：每 500 字自动保存，每 60 秒定时保存
 - 每章生成完毕后，状态变为 `Completed`
 - 用户可随时暂停、修改上一章、或干预后续剧情
+- 支持选择不同的系统人设模板和章节写作模板
 
 #### Step 3：用户干预
 
-- **调整剧情**：发送指令（如"让主角失忆""加入穿越元素"）
-- **重写章节**：要求 AI 重新生成某一章
-- **跳过章节**：直接写下一章
+- **调整剧情**：发送指令（如"让主角失忆""加入穿越元素"），AI 根据指令重写章节
+- **重写章节**：一键重写当前章节，自动保存旧版本
 - **手动编辑**：直接编辑正文内容
+- **版本回滚**：回滚到任意历史版本
 
 #### Step 4：自动继续
 
 - 用户确认后，AI 自动继续写下一章
 - 循环 Step 2-4，直到用户停止或写完全部章节
 
-### 5.3 阅读功能
+### 5.3 Prompt 模板管理
+
+- **内置模板**：8 种系统人设模板、4 种大纲生成模板、4 种章节写作模板
+- **自定义模板**：创建、编辑、删除自定义模板
+- **模板复制**：基于现有模板创建副本
+- **类型筛选**：按模板类型（系统人设/大纲生成/章节写作）筛选
+- **占位符支持**：模板内容支持 `{{genre}}`、`{{worldSetting}}`、`{{chapterTitle}}` 等变量
+
+**内置系统人设模板：**
+- 通用网文作家、玄幻爽文风格、仙侠修真风格、都市言情风格
+- 悬疑推理风格、科幻末世风格、历史穿越风格、无限流风格
+
+**内置大纲生成模板：**
+- 通用大纲生成、爽文节奏大纲、悬疑大纲生成、言情大纲生成
+
+**内置章节写作模板：**
+- 通用章节写作、爽文章节写作、悬疑章节写作、言情章节写作
+
+### 5.4 版本管理
+
+- **自动保存**：写作过程中每 500 字自动保存版本（auto-save）
+- **定时保存**：每 60 秒自动保存一次
+- **手动快照**：用户可随时保存当前内容快照（manual-save）
+- **重写保存**：重写章节时自动保存旧版本（rewrite）
+- **版本回滚**：回滚到任意历史版本
+- **自动清理**：每个章节保留最近 20 个 auto-save 版本，旧版本自动清理
+
+### 5.5 阅读功能
 
 - **章节列表**：展示所有章节，显示标题和状态
 - **阅读正文**：点击章节查看完整内容
 - **阅读进度**：标记当前写到第几章
 
-### 5.4 导出功能
+### 5.6 导出功能
 
 - **导出 TXT**：将所有章节导出为单个文本文件
 - **导出 EPUB**（可选）：生成电子书格式
 
-### 5.5 设置
+### 5.7 设置
 
-- **API 配置**：DeepSeek API Key 和端点
-- **模型选择**：选择使用的模型（如 deepseek-chat）
-- **默认题材**：新建小说时的默认题材选择
+- **API 配置**：DeepSeek API Key
+- **Prompt 模板管理**：在设置页面内嵌模板管理子页面
 
 ---
 
@@ -216,24 +287,23 @@ AI 根据用户输入的题材和世界观，生成：
 
 | 页面 | 功能 | 路由 |
 |------|------|------|
-| 书架 | 小说列表、新建小说 | /bookshelf |
-| 创作 | 章节流水线、写作控制 | /create/{novelId} |
-| 阅读 | 章节正文阅读 | /read/{novelId}/{chapterId} |
-| 设置 | API 配置、偏好设置 | /settings |
+| 书架 | 小说列表、新建小说（含封面选择） | /bookshelf |
+| 创作 | 章节流水线、写作控制、模板选择、版本管理 | /create/{novelId} |
+| 设置 | API 配置、Prompt 模板管理 | /settings |
 
 ### 6.3 创作页面布局
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  《小说标题》                            [导出] [设置]   │
+│  《小说标题》                   [模板] [版本] [导出]      │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
 │  ┌─────────────────────────────────────────────────┐   │
 │  │              章节列表 (左侧)                     │   │
-│  │  □ 第一章 意外穿越        [已完成]                 │   │
-│  │  □ 第二章 森林探险        [已完成]                │   │
-│  │  □ 第三章 遇见女主        [写作中]                │   │
-│  │  □ 第四章 ...             [待写]                   │   │
+│  │  第一章 意外穿越        [已完成]                 │   │
+│  │  第二章 森林探险        [已完成]                │   │
+│  │  第三章 遇见女主        [写作中]                │   │
+│  │  第四章 ...             [待写]                   │   │
 │  └─────────────────────────────────────────────────┘   │
 │                                                         │
 │  ┌─────────────────────────────────────────────────┐   │
@@ -249,12 +319,11 @@ AI 根据用户输入的题材和世界观，生成：
 │                                                         │
 │  ┌─────────────────────────────────────────────────┐   │
 │  │  控制面板                                        │   │
-│  │  [暂停] [重写本章] [调整剧情] [继续写下一章]      │   │
+│  │  [开始写作]  [停止]  [重写本章]  [保存快照]       │   │
 │  │                                                  │   │
 │  │  剧情调整指令：________________________________ │   │
 │  │  [发送指令]                                      │   │
 │  └─────────────────────────────────────────────────┘   │
-│                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -262,7 +331,23 @@ AI 根据用户输入的题材和世界观，生成：
 
 ## 7. Semantic Kernel Prompt 设计
 
-### 7.1 系统提示词
+### 7.1 模板系统
+
+Prompt 模板支持 Mustache 风格占位符，运行时通过 `RenderTemplate` 方法替换变量：
+
+**可用变量：**
+
+| 占位符 | 适用模板类型 | 说明 |
+|--------|-------------|------|
+| `{{genre}}` | System / Outline / Chapter | 题材 |
+| `{{worldSetting}}` | System / Outline / Chapter | 世界观 |
+| `{{chapterTitle}}` | Chapter | 章节标题 |
+| `{{chapterSummary}}` | Chapter | 章节概要 |
+| `{{previousSummary}}` | Chapter | 前文剧情 |
+| `{{currentContent}}` | Rewrite | 当前章节内容 |
+| `{{instruction}}` | Rewrite | 用户指令 |
+
+### 7.2 系统提示词（默认）
 
 ```markdown
 你是一个经验丰富的网络小说作家，精通各种网文套路和风格。
@@ -274,16 +359,15 @@ AI 根据用户输入的题材和世界观，生成：
 - 章节结尾留有钩子，吸引读者继续阅读
 ```
 
-### 7.2 生成大纲
+### 7.3 生成大纲（默认）
 
 ```markdown
 ## 任务
 根据以下设定，生成网络小说大纲。
 
 ## 输入
-- 题材：{{$genre}}
-- 世界观：{{$worldSetting}}
-- 主线提示（可选）：{{$mainPlot}}
+- 题材：{{genre}}
+- 世界观：{{worldSetting}}
 
 ## 要求
 1. 生成 10-15 章的章节列表
@@ -295,18 +379,18 @@ AI 根据用户输入的题材和世界观，生成：
 JSON 格式，字段：title（章节标题），summary（章节概要）
 ```
 
-### 7.3 写作章节
+### 7.4 写作章节（默认）
 
 ```markdown
 ## 任务
 根据以下大纲，写出章节正文。
 
 ## 输入
-- 章节标题：{{$chapterTitle}}
-- 章节概要：{{$chapterSummary}}
-- 前文剧情：{{$previousSummary}}
-- 题材：{{$genre}}
-- 世界观：{{$worldSetting}}
+- 章节标题：{{chapterTitle}}
+- 章节概要：{{chapterSummary}}
+- 前文剧情：{{previousSummary}}
+- 题材：{{genre}}
+- 世界观：{{worldSetting}}
 
 ## 要求
 1. 字数：2000-5000 字
@@ -319,29 +403,27 @@ JSON 格式，字段：title（章节标题），summary（章节概要）
 直接输出章节正文，不需要额外格式。
 ```
 
-### 7.4 调整剧情
+### 7.5 重写章节（默认）
 
 ```markdown
 ## 任务
-根据用户的新指令，修改或重新生成章节内容。
+根据用户的新指令，修改当前章节内容。
 
 ## 输入
-- 原章节概要：{{$originalSummary}}
-- 用户指令：{{$userInstruction}}
-- 前文剧情：{{$previousSummary}}
-- 题材：{{$genre}}
-- 世界观：{{$worldSetting}}
+- 当前章节标题：{{chapterTitle}}
+- 当前章节内容：{{currentContent}}
+- 用户指令：{{instruction}}
+- 题材：{{genre}}
+- 世界观：{{worldSetting}}
 
 ## 要求
 1. 严格按照用户指令调整剧情
-2. 如果改动较大，需要更新后续章节的大纲
-3. 保持人物性格一致性
-4. 确保调整后的剧情合理、有趣
+2. 保持原有章节标题和整体结构
+3. 调整后的内容应合理、流畅
+4. 字数：2000-5000 字
 
 ## 输出
-- 新章节概要（如有变化）
-- 新章节正文（如需重写）
-- 后续章节调整建议（如有）
+直接输出修改后的章节正文，不需要额外格式。
 ```
 
 ---
@@ -393,6 +475,8 @@ public class NovelDbContext : DbContext
     public DbSet<Novel> Novels => Set<Novel>();
     public DbSet<Chapter> Chapters => Set<Chapter>();
     public DbSet<AppSettings> AppSettings => Set<AppSettings>();
+    public DbSet<PromptTemplate> PromptTemplates => Set<PromptTemplate>();
+    public DbSet<ChapterVersion> ChapterVersions => Set<ChapterVersion>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
@@ -420,63 +504,66 @@ dotnet ef database update
 ## 10. Project Structure
 
 ```
-AINovelFlow/
-├── AINovelFlow.sln
-├── src/
-│   └── AINovelFlow/
-│       ├── AINovelFlow.csproj
-│       ├── App.axaml
-│       ├── App.axaml.cs
-│       ├── Program.cs
-│       │
-│       ├── Models/
-│       │   ├── Novel.cs
-│       │   ├── Chapter.cs
-│       │   ├── AppSettings.cs
-│       │   └── Dtos/
-│       │       ├── OutlineDto.cs
-│       │       └── ChapterDto.cs
-│       │
-│       ├── ViewModels/
-│       │   ├── MainWindowViewModel.cs
-│       │   ├── BookshelfViewModel.cs
-│       │   ├── CreateViewModel.cs
-│       │   ├── ReadViewModel.cs
-│       │   ├── SettingsViewModel.cs
-│       │   └── ViewModelBase.cs
-│       │
-│       ├── Views/
-│       │   ├── MainWindow.axaml
-│       │   ├── MainWindow.axaml.cs
-│       │   ├── BookshelfView.axaml
-│       │   ├── CreateView.axaml
-│       │   ├── ReadView.axaml
-│       │   └── SettingsView.axaml
-│       │
-│       ├── Services/
-│       │   ├── LLMService.cs
-│       │   ├── StoryService.cs
-│       │   ├── ChapterService.cs
-│       │   └── DatabaseService.cs
-│       │
-│       ├── Data/
-│       │   └── NovelDbContext.cs
-│       │
-│       ├── Plywood/
-│       │   └── SemanticKernel/
-│       │       └── Prompts/
-│       │           ├── SystemPrompt.txt
-│       │           ├── OutlinePrompt.txt
-│       │           └── WritingPrompt.txt
-│       │
-│       └── Assets/
-│           └── logo.ico
+AvaloniaNovel/
+├── App.axaml
+├── App.axaml.cs
+├── Program.cs
+├── ViewLocator.cs
 │
-├── docs/
-│   └── PRD-AINovelFlow.md
+├── Models/
+│   ├── Novel.cs
+│   ├── Chapter.cs
+│   ├── ChapterStatus.cs
+│   ├── ChapterVersion.cs
+│   ├── PromptTemplate.cs
+│   ├── PromptTemplateType.cs
+│   └── AppSettings.cs
 │
-└── tests/
-    └── AINovelFlow.Tests/
+├── ViewModels/
+│   ├── MainWindowViewModel.cs
+│   ├── BookshelfViewModel.cs
+│   ├── CreateViewModel.cs
+│   ├── PromptTemplateViewModel.cs
+│   ├── SettingsViewModel.cs
+│   ├── Converters.cs
+│   ├── IndexToBoolConverter.cs
+│   └── ViewModelBase.cs
+│
+├── Views/
+│   ├── MainWindow.axaml
+│   ├── MainWindow.axaml.cs
+│   ├── BookshelfView.axaml
+│   ├── BookshelfView.axaml.cs
+│   ├── CreateNovelDialogView.axaml
+│   ├── CreateNovelDialogView.axaml.cs
+│   ├── CreateView.axaml
+│   ├── CreateView.axaml.cs
+│   ├── PromptTemplateView.axaml
+│   ├── PromptTemplateView.axaml.cs
+│   ├── SettingsView.axaml
+│   └── SettingsView.axaml.cs
+│
+├── Services/
+│   ├── LLMService.cs
+│   ├── StoryService.cs
+│   ├── DatabaseService.cs
+│   ├── CoverImageService.cs
+│   ├── DialogManager.cs
+│   ├── ExportService.cs
+│   └── DatabaseInitializer.cs
+│
+├── Data/
+│   ├── NovelDbContext.cs
+│   └── Migrations/
+│
+├── Styles/
+│   └── GlobalStyles.axaml
+│
+├── Assets/
+│   └── avalonia-logo.ico
+│
+└── docs/
+    └── PRD-AINovelFlow.md
 ```
 
 ---
@@ -493,6 +580,8 @@ AINovelFlow/
 
 - API 调用失败时，显示友好错误提示
 - 自动保存：每生成 500 字自动保存一次
+- 定时保存：每 60 秒自动保存一次
+- 版本管理：重写前自动保存旧版本
 - 离线模式：API Key 无效时，显示设置引导
 
 ### 11.3 兼容性
@@ -512,6 +601,7 @@ AINovelFlow/
 ### M2: 书架功能
 - [x] 小说 CRUD
 - [x] 小说列表展示
+- [x] 封面图片选择和存储
 
 ### M3: 设置功能
 - [x] API Key 配置
@@ -527,20 +617,36 @@ AINovelFlow/
 - [x] 进度控制（暂停/继续）
 
 ### M5: 干预功能
-- [ ] 剧情调整指令
-- [ ] 章节重写
-- [ ] 手动编辑
+- [x] 剧情调整指令
+- [x] 章节重写
+- [x] 手动编辑
 
 ### M6: 阅读和导出
 - [x] 章节阅读
 - [x] TXT 导出
+
+### M7: Prompt 模板系统
+- [x] PromptTemplate 数据模型和数据库迁移
+- [x] 内置默认模板（8 系统人设 + 4 大纲 + 4 章节）
+- [x] 模板 CRUD（创建、编辑、删除、复制）
+- [x] 模板类型筛选
+- [x] 创作页面模板选择（系统人设、大纲、章节）
+- [x] 模板占位符变量替换
+
+### M8: 版本管理
+- [x] ChapterVersion 数据模型和数据库迁移
+- [x] 自动保存（每 500 字 + 每 60 秒）
+- [x] 手动快照保存
+- [x] 重写前自动保存旧版本
+- [x] 版本回滚
+- [x] 旧版本自动清理（保留最近 20 个 auto-save）
 
 ---
 
 ## 13. Dependencies
 
 ```xml
-<!-- AINovelFlow.csproj -->
+<!-- AvaloniaNovel.csproj -->
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -586,14 +692,14 @@ AINovelFlow/
 ## 14. Out of Scope（本次不做）
 
 - Epub 导出
+- AI 封面生成（图片模型集成）
 - 多端同步
 - 社区分享
-- AI 配图
 - 语音朗读
 - 多语言支持
 
 ---
 
-*Document Version: 1.1*
+*Document Version: 1.2*
 *Created: 2026-04-25*
-*Updated: 2026-04-26 — 更新里程碑完成状态、新增流式输出和 Markdown 渲染功能描述*
+*Updated: 2026-05-08 — 新增 Prompt 模板系统、版本管理、剧情干预/重写功能；更新数据模型和里程碑*

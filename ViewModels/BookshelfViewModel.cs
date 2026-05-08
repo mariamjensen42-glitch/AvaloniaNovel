@@ -11,7 +11,6 @@ using AvaloniaNovel.Services;
 using AvaloniaNovel.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SukiUI.Dialogs;
 
 namespace AvaloniaNovel.ViewModels;
 
@@ -19,7 +18,7 @@ public partial class BookshelfViewModel : ViewModelBase
 {
     private readonly DatabaseService _dbService;
     private readonly CoverImageService _coverImageService;
-    private readonly ISukiDialogManager _dialogManager;
+    private readonly IDialogManager _dialogManager;
 
     [ObservableProperty]
     private ObservableCollection<Novel> _novels = new();
@@ -61,7 +60,7 @@ public partial class BookshelfViewModel : ViewModelBase
 
     public event EventHandler<Novel>? NovelOpened;
 
-    public BookshelfViewModel(ISukiDialogManager dialogManager)
+    public BookshelfViewModel(IDialogManager dialogManager)
     {
         _dbService = new DatabaseService();
         _coverImageService = new CoverImageService();
@@ -92,13 +91,7 @@ public partial class BookshelfViewModel : ViewModelBase
         NewNovelWorldSetting = string.Empty;
         ClearCoverSelection();
 
-        _dialogManager
-            .CreateDialog()
-            .WithTitle("新建小说")
-            .WithContent(new CreateNovelDialogView { DataContext = this })
-            .Dismiss()
-            .ByClickingBackground()
-            .TryShow();
+        _dialogManager.ShowDialog(new CreateNovelDialogView { DataContext = this }, "新建小说");
     }
 
     [RelayCommand]
