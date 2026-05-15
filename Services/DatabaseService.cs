@@ -8,9 +8,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AvaloniaNovel.Services;
 
-public class DatabaseService
+public class DatabaseService : IDatabaseService
 {
-    private readonly CoverImageService _coverImageService = new();
+    private readonly ICoverImageService _coverImageService;
+
+    public DatabaseService(ICoverImageService coverImageService)
+    {
+        _coverImageService = coverImageService;
+    }
 
     public async Task<List<Novel>> GetAllNovelsAsync()
     {
@@ -94,21 +99,27 @@ public class DatabaseService
     public async Task<AppSettings?> GetAppSettingsAsync()
     {
         using var db = new NovelDbContext();
-        return await db.AppSettings.FirstOrDefaultAsync();
+        var settings = await db.AppSettings.FirstOrDefaultAsync();
+        if (settings != null)
+        {
+            settings.DeepSeekApiKey = KeyEncryption.Unprotect(settings.DeepSeekApiKey);
+        }
+        return settings;
     }
 
     public async Task SaveAppSettingsAsync(string apiKey)
     {
         using var db = new NovelDbContext();
         var settings = await db.AppSettings.FirstOrDefaultAsync();
+        var encryptedKey = KeyEncryption.Protect(apiKey);
         if (settings == null)
         {
-            settings = new AppSettings { DeepSeekApiKey = apiKey };
+            settings = new AppSettings { DeepSeekApiKey = encryptedKey };
             db.AppSettings.Add(settings);
         }
         else
         {
-            settings.DeepSeekApiKey = apiKey;
+            settings.DeepSeekApiKey = encryptedKey;
         }
         await db.SaveChangesAsync();
     }

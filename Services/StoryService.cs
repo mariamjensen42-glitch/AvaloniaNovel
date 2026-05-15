@@ -8,13 +8,13 @@ using AvaloniaNovel.Models;
 
 namespace AvaloniaNovel.Services;
 
-public class StoryService
+public class StoryService : IStoryService
 {
-    private readonly LLMService _llmService;
+    private readonly ILLMService _llmService;
 
-    public StoryService()
+    public StoryService(ILLMService llmService)
     {
-        _llmService = new LLMService();
+        _llmService = llmService;
     }
 
     // ── 默认内置 Prompt（兼容无模板场景）──────────────────────────────────

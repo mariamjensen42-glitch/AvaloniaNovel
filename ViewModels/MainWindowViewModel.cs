@@ -38,19 +38,19 @@ public partial class MainWindowViewModel : ViewModelBase
     public SettingsViewModel SettingsViewModel { get; }
     public PromptTemplateViewModel PromptTemplateViewModel { get; }
 
-    public MainWindowViewModel()
+    public MainWindowViewModel(IDialogManager dialogManager,
+        BookshelfViewModel bookshelfViewModel,
+        CreateViewModel createViewModel,
+        SettingsViewModel settingsViewModel,
+        PromptTemplateViewModel promptTemplateViewModel)
     {
-        DialogManager = new DialogManager();
-        BookshelfViewModel = new BookshelfViewModel(DialogManager);
-        CreateViewModel = new CreateViewModel();
-        SettingsViewModel = new SettingsViewModel();
-        PromptTemplateViewModel = new PromptTemplateViewModel();
+        DialogManager = dialogManager;
+        BookshelfViewModel = bookshelfViewModel;
+        CreateViewModel = createViewModel;
+        SettingsViewModel = settingsViewModel;
+        PromptTemplateViewModel = promptTemplateViewModel;
 
         BookshelfViewModel.NovelOpened += OnNovelOpened;
-
-        OnPropertyChanged(nameof(SelectedMenuIndex));
-        OnPropertyChanged(nameof(ActiveSectionTitle));
-        OnPropertyChanged(nameof(ActiveSectionDescription));
     }
 
     private async void OnNovelOpened(object? sender, Novel novel)

@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Threading;
 
 namespace AvaloniaNovel.Services;
 
@@ -11,6 +12,7 @@ public interface IDialogManager
 public class DialogManager : IDialogManager
 {
     private Window? _owner;
+    private Window? _currentDialog;
 
     public void SetOwner(Window owner)
     {
@@ -21,7 +23,7 @@ public class DialogManager : IDialogManager
     {
         if (_owner == null) return;
 
-        var dialog = new Window
+        _currentDialog = new Window
         {
             Title = title,
             Content = content,
@@ -30,10 +32,19 @@ public class DialogManager : IDialogManager
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             CanResize = false,
         };
-        dialog.ShowDialog(_owner);
+
+        _currentDialog.Closed += (_, _) => _currentDialog = null;
+
+        // Non-blocking Show so DismissDialog() can close it
+        _currentDialog.Show(_owner);
     }
 
     public void DismissDialog()
     {
+        if (_currentDialog != null)
+        {
+            Dispatcher.UIThread.Post(() => _currentDialog.Close());
+            _currentDialog = null;
+        }
     }
 }

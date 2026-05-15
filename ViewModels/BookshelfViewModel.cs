@@ -14,10 +14,10 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AvaloniaNovel.ViewModels;
 
-public partial class BookshelfViewModel : ViewModelBase
+public partial class BookshelfViewModel : ViewModelBase, IDisposable
 {
-    private readonly DatabaseService _dbService;
-    private readonly CoverImageService _coverImageService;
+    private readonly IDatabaseService _dbService;
+    private readonly ICoverImageService _coverImageService;
     private readonly IDialogManager _dialogManager;
 
     [ObservableProperty]
@@ -60,10 +60,10 @@ public partial class BookshelfViewModel : ViewModelBase
 
     public event EventHandler<Novel>? NovelOpened;
 
-    public BookshelfViewModel(IDialogManager dialogManager)
+    public BookshelfViewModel(IDatabaseService dbService, ICoverImageService coverImageService, IDialogManager dialogManager)
     {
-        _dbService = new DatabaseService();
-        _coverImageService = new CoverImageService();
+        _dbService = dbService;
+        _coverImageService = coverImageService;
         _dialogManager = dialogManager;
         AttachNovelCollection(Novels);
         _ = LoadNovelsAsync();
@@ -242,5 +242,12 @@ public partial class BookshelfViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasNovels));
         OnPropertyChanged(nameof(NovelsWithCover));
         OnPropertyChanged(nameof(CoverStatusText));
+    }
+
+    public void Dispose()
+    {
+        if (NewNovelCoverPreview is IDisposable d)
+            d.Dispose();
+        NewNovelCoverPreview = null;
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +8,7 @@ using Avalonia.Platform.Storage;
 
 namespace AvaloniaNovel.Services;
 
-public class ExportService
+public class ExportService : IExportService
 {
     public async Task ExportToTxtAsync(TopLevel topLevel, string title, string content)
     {
@@ -17,11 +17,11 @@ public class ExportService
 
         var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "导出小说",
+            Title = "瀵煎嚭灏忚",
             SuggestedFileName = $"{title}.txt",
             FileTypeChoices = new[]
             {
-                new FilePickerFileType("文本文件")
+                new FilePickerFileType("鏂囨湰鏂囦欢")
                 {
                     Patterns = new[] { "*.txt" }
                 }
@@ -55,3 +55,4 @@ public class ExportService
         return sb.ToString();
     }
 }
+

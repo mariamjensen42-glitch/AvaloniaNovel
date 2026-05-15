@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -6,9 +6,9 @@ using Avalonia.Platform.Storage;
 
 namespace AvaloniaNovel.Services;
 
-public class CoverImageService
+public class CoverImageService : ICoverImageService
 {
-    private static readonly FilePickerFileType ImageFileType = new("图片文件")
+    private static readonly FilePickerFileType ImageFileType = new("鍥剧墖鏂囦欢")
     {
         Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp" },
         MimeTypes = new[] { "image/png", "image/jpeg", "image/webp", "image/bmp" }
@@ -20,7 +20,7 @@ public class CoverImageService
     {
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "选择小说封面",
+            Title = "閫夋嫨灏忚灏侀潰",
             AllowMultiple = false,
             FileTypeFilter = new[] { ImageFileType }
         });
@@ -60,8 +60,11 @@ public class CoverImageService
 
     private static string GetAppDataDirectory()
     {
-        return Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "AINovelFlow");
+        var basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        if (string.IsNullOrWhiteSpace(basePath))
+            basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        return Path.Combine(basePath, "AINovelFlow");
     }
 }
+
+

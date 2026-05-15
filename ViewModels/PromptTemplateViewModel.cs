@@ -14,7 +14,7 @@ public sealed record FilterOption(string Label, PromptTemplateType? Type);
 
 public partial class PromptTemplateViewModel : ViewModelBase
 {
-    private readonly DatabaseService _dbService;
+    private readonly IDatabaseService _dbService;
 
     [ObservableProperty]
     private ObservableCollection<PromptTemplate> _templates = new();
@@ -77,9 +77,9 @@ public partial class PromptTemplateViewModel : ViewModelBase
     public bool IsDetailViewing => SelectedTemplate != null && !IsEditing;
     public bool IsDetailEditing => IsEditing;
 
-    public PromptTemplateViewModel()
+    public PromptTemplateViewModel(IDatabaseService dbService)
     {
-        _dbService = new DatabaseService();
+        _dbService = dbService;
         SelectedFilterOption = FilterOptions[0];
         _ = LoadTemplatesAsync();
     }

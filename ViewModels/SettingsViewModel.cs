@@ -7,7 +7,7 @@ namespace AvaloniaNovel.ViewModels;
 
 public partial class SettingsViewModel : ViewModelBase
 {
-    private readonly DatabaseService _dbService;
+    private readonly IDatabaseService _dbService;
 
     [ObservableProperty]
     private string _apiKey = string.Empty;
@@ -21,10 +21,11 @@ public partial class SettingsViewModel : ViewModelBase
     /// <summary>提示词模板管理子 ViewModel</summary>
     public PromptTemplateViewModel PromptTemplateViewModel { get; }
 
-    public SettingsViewModel()
+    public SettingsViewModel(IDatabaseService dbService, PromptTemplateViewModel promptTemplateViewModel)
     {
-        _dbService = new DatabaseService();
-        PromptTemplateViewModel = new PromptTemplateViewModel();
+        _dbService = dbService;
+        PromptTemplateViewModel = promptTemplateViewModel;
+        
         _ = LoadSettingsAsync();
     }
 

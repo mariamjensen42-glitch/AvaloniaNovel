@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using AvaloniaNovel.Models;
 using System;
 using System.IO;
@@ -16,7 +16,7 @@ public class NovelDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
         var dbPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            (Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) is string local && local.Length > 0 ? local : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)),
             "AINovelFlow",
             "ainovelflow.db");
 
@@ -70,3 +70,4 @@ public class NovelDbContext : DbContext
         });
     }
 }
+

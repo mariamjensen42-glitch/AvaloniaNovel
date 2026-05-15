@@ -8,9 +8,9 @@ using OpenAI;
 
 namespace AvaloniaNovel.Services;
 
-public class LLMService
+public class LLMService : ILLMService
 {
-    private readonly DatabaseService _dbService;
+    private readonly IDatabaseService _dbService;
     private const string DefaultSystemPrompt = @"你是一个经验丰富的网络小说作家，精通各种网文套路和风格。
 你有10年以上的网文创作经验，写过都市、玄幻、悬疑、科幻等多种类型的小说。
 你的写作风格：
@@ -21,9 +21,9 @@ public class LLMService
 
     private const string DeepSeekEndpoint = "https://api.deepseek.com";
 
-    public LLMService()
+    public LLMService(IDatabaseService dbService)
     {
-        _dbService = new DatabaseService();
+        _dbService = dbService;
     }
 
     private async Task<IChatClient> BuildChatClientAsync()

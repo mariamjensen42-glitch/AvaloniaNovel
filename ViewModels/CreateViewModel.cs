@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -18,8 +17,9 @@ namespace AvaloniaNovel.ViewModels;
 
 public partial class CreateViewModel : ViewModelBase
 {
-    private readonly DatabaseService _dbService;
-    private readonly ExportService _exportService;
+    private readonly IDatabaseService _dbService;
+    private readonly IExportService _exportService;
+    private readonly IStoryService _storyService = null!;
 
     // 用于取消正在进行的流式写作
     private CancellationTokenSource? _writingCts;
@@ -95,7 +95,7 @@ public partial class CreateViewModel : ViewModelBase
     private ObservableCollection<ChapterVersion> _versions = new();
 
     // ── 自动保存 ─────────────────────────────────────────────────────
-    private System.Timers.Timer? _autoSaveTimer;
+    private DispatcherTimer? _autoSaveTimer;
     private int _wordsSinceLastSave = 0;
     private const int AutoSaveWordThreshold = 500; // 每 500 字自动保存
     private const int AutoSaveIntervalMs = 60000;   // 每 60 秒自动保存
@@ -106,10 +106,11 @@ public partial class CreateViewModel : ViewModelBase
     [ObservableProperty]
     private string _instructionText = string.Empty;
 
-    public CreateViewModel()
+    public CreateViewModel(IDatabaseService dbService, IExportService exportService, IStoryService storyService)
     {
-        _dbService = new DatabaseService();
-        _exportService = new ExportService();
+        _dbService = dbService;
+        _exportService = exportService;
+        _storyService = storyService;
     }
 
     public async Task LoadNovelAsync(Novel novel)
@@ -161,7 +162,7 @@ public partial class CreateViewModel : ViewModelBase
 
         try
         {
-            var storyService = new StoryService();
+            var storyService = _storyService;
             var chapters = await storyService.GenerateOutlineAsync(
                 CurrentNovel.Genre,
                 CurrentNovel.WorldSetting,
@@ -204,7 +205,7 @@ public partial class CreateViewModel : ViewModelBase
 
         try
         {
-            var storyService = new StoryService();
+            var storyService = _storyService;
             var firstIncomplete = Chapters.FirstOrDefault(c => c.Status == ChapterStatus.Outline);
 
             if (firstIncomplete == null)
@@ -237,7 +238,7 @@ public partial class CreateViewModel : ViewModelBase
     /// 使用流式 API 写作一章：每收到 token 即刷新 MarkdownRenderer，完成后保存数据库。
     /// </summary>
     private async Task WriteChapterStreamingAsync(
-        Chapter chapter, StoryService storyService, CancellationToken ct)
+        Chapter chapter, IStoryService storyService, CancellationToken ct)
     {
         var index = Chapters.IndexOf(chapter);
 
@@ -264,8 +265,8 @@ public partial class CreateViewModel : ViewModelBase
             {
                 StreamingBuilder.Append(chunk);
                 CurrentWordCount += chunk.Length;
-                _wordsSinceLastSave += chunk.Length;
-                if (_wordsSinceLastSave >= AutoSaveWordThreshold)
+                System.Threading.Interlocked.Add(ref _wordsSinceLastSave, chunk.Length);
+                if (System.Threading.Volatile.Read(ref _wordsSinceLastSave) >= AutoSaveWordThreshold)
                 {
                     _ = SaveVersionAsync("auto-save");
                     _wordsSinceLastSave = 0;
@@ -375,28 +376,33 @@ public partial class CreateViewModel : ViewModelBase
     private void RefreshChapterInList(Chapter chapter, int index)
     {
         if (index >= 0 && index < Chapters.Count)
-            Chapters[index] = chapter;
+        {
+            Chapters.RemoveAt(index);
+            Chapters.Insert(index, chapter);
+        }
     }
 
     private void StartAutoSaveTimer()
     {
         StopAutoSaveTimer();
-        _autoSaveTimer = new System.Timers.Timer(AutoSaveIntervalMs);
-        _autoSaveTimer.Elapsed += async (s, e) =>
-        {
-            if (_wordsSinceLastSave > 0)
+        _autoSaveTimer = new DispatcherTimer(
+            TimeSpan.FromMilliseconds(AutoSaveIntervalMs),
+            DispatcherPriority.Background,
+            async (s, e) =>
             {
-                await SaveVersionAsync("auto-save");
-                _wordsSinceLastSave = 0;
-            }
-        };
+                var words = System.Threading.Interlocked.Exchange(ref _wordsSinceLastSave, 0);
+                if (words > 0)
+                {
+                    await SaveVersionAsync("auto-save");
+                }
+            });
         _autoSaveTimer.Start();
     }
 
     private void StopAutoSaveTimer()
     {
         _autoSaveTimer?.Stop();
-        _autoSaveTimer?.Dispose();
+        _autoSaveTimer?.Stop();
         _autoSaveTimer = null;
     }
 
@@ -428,6 +434,19 @@ public partial class CreateViewModel : ViewModelBase
         await LoadVersionsAsync(SelectedChapter.Id);
     }
 
+    
+    private string BuildPreviousSummary()
+    {
+        if (SelectedChapter == null || Chapters.Count == 0)
+            return string.Empty;
+
+        var idx = Chapters.IndexOf(SelectedChapter);
+        if (idx <= 0)
+            return string.Empty;
+
+        return Chapters[idx - 1].Summary;
+    }
+
     [RelayCommand]
     private async Task SendInstruction()
     {
@@ -442,14 +461,14 @@ public partial class CreateViewModel : ViewModelBase
 
         try
         {
-            var storyService = new StoryService();
+            var storyService = _storyService;
             var newContent = await storyService.RewriteChapterAsync(
                 SelectedChapter.Content,
                 InstructionText,
                 SelectedChapter.Title,
                 CurrentNovel!.Genre,
                 CurrentNovel.WorldSetting,
-                previousSummary: "",
+                previousSummary: BuildPreviousSummary(),
                 rewriteTemplate: SelectedChapterTemplate?.Content,
                 systemPrompt: SelectedSystemTemplate?.Content);
 
