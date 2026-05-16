@@ -33,19 +33,20 @@
             </ListBox.ItemsPanel>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Border Width="120" Height="160" Margin="4"
+                    <Border Width="130" Height="190" Margin="4"
                             BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                             BorderThickness="1"
                             CornerRadius="4">
                         <Grid RowDefinitions="*,Auto">
-                            <TextBlock Grid.Row="0" 
+                            <Image Grid.Row="0"
+                                   Source="{Binding Thumbnail}"
+                                   Stretch="Uniform"
+                                   Margin="4" />
+                            <TextBlock Grid.Row="1"
                                        Text="{Binding PageNumber, StringFormat='第 {0} 页'}"
                                        HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" />
-                            <TextBlock Grid.Row="1" 
-                                       Text="{Binding Rotation, StringFormat='旋转 {0}°'}"
-                                       HorizontalAlignment="Center"
                                        FontSize="12"
+                                       Margin="0,0,0,4"
                                        Opacity="0.7" />
                         </Grid>
                     </Border>

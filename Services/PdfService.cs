@@ -121,6 +121,26 @@ public class PdfService
         });
     }
 
+    public async Task SavePagesAsync(string filePath, List<PdfPageModel> pages, string outputPath)
+    {
+        await Task.Run(() =>
+        {
+            using var inputDocument = PdfReader.Open(filePath, PdfDocumentOpenMode.Import);
+            using var outputDocument = new PdfDocument();
+
+            foreach (var pageModel in pages)
+            {
+                if (pageModel.PageNumber >= 1 && pageModel.PageNumber <= inputDocument.PageCount)
+                {
+                    var page = outputDocument.AddPage(inputDocument.Pages[pageModel.PageNumber - 1]);
+                    page.Rotate = pageModel.Rotation;
+                }
+            }
+
+            outputDocument.Save(outputPath);
+        });
+    }
+
     public async Task DeletePagesAsync(string filePath, List<int> pageNumbers, string outputPath)
     {
         await Task.Run(() =>

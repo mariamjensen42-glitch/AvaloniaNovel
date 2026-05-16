@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AgentNovel.Messages;
 using AgentNovel.Models;
 using AgentNovel.Services;
 using Avalonia;
@@ -10,12 +11,15 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace AgentNovel.ViewModels;
 
 public partial class PageManagerViewModel : ViewModelBase
 {
     private readonly PdfService _pdfService = new();
+    private readonly ThumbnailService _thumbnailService = new();
+    private readonly SettingsService _settingsService = new();
     private string? _sourceFilePath;
 
     [ObservableProperty]
@@ -36,24 +40,51 @@ public partial class PageManagerViewModel : ViewModelBase
         var storage = desktop.MainWindow?.StorageProvider;
         if (storage == null) return;
 
-        var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+        var settings = await _settingsService.LoadAsync();
+        var options = new FilePickerOpenOptions
         {
             Title = "选择PDF文件",
             AllowMultiple = false,
             FileTypeFilter = new[] { new FilePickerFileType("PDF文件") { Patterns = new[] { "*.pdf" } } }
-        });
+        };
+        if (!string.IsNullOrEmpty(settings.LastProjectPath))
+        {
+            options.SuggestedStartLocation = await StorageProviderHelper.TryGetFolderFromPathAsync(
+                storage, settings.LastProjectPath);
+        }
+
+        var files = await storage.OpenFilePickerAsync(options);
 
         if (files.Count > 0)
         {
             try
             {
-                CurrentFile = await _pdfService.LoadPdfAsync(files[0].Path.LocalPath);
-                _sourceFilePath = files[0].Path.LocalPath;
+                var filePath = files[0].Path.LocalPath;
+                CurrentFile = await _pdfService.LoadPdfAsync(filePath);
+                _sourceFilePath = filePath;
+
+                settings.LastProjectPath = Path.GetDirectoryName(filePath);
+                await _settingsService.SaveAsync(settings);
+
+                await GenerateThumbnailsAsync(filePath);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // TODO: 显示错误提示
+                WeakReferenceMessenger.Default.Send(
+                    new NotificationMessage(new NotificationInfo { Message = "文件加载失败", Type = NotificationType.Error }));
             }
+        }
+    }
+
+    private async Task GenerateThumbnailsAsync(string filePath)
+    {
+        if (CurrentFile == null) return;
+
+        for (int i = 0; i < CurrentFile.Pages.Count; i++)
+        {
+            var page = CurrentFile.Pages[i];
+            var thumbnail = await _thumbnailService.GenerateThumbnailAsync(filePath, page.PageNumber);
+            page.Thumbnail = thumbnail;
         }
     }
 
@@ -78,8 +109,7 @@ public partial class PageManagerViewModel : ViewModelBase
     [RelayCommand]
     private void Delete()
     {
-        if (CurrentFile == null)
-            return;
+        if (CurrentFile == null) return;
 
         foreach (var page in SelectedPages.ToList())
         {
@@ -87,7 +117,6 @@ public partial class PageManagerViewModel : ViewModelBase
         }
         SelectedPages.Clear();
 
-        // 重新编号
         for (int i = 0; i < CurrentFile.Pages.Count; i++)
         {
             CurrentFile.Pages[i].PageNumber = i + 1;
@@ -97,8 +126,7 @@ public partial class PageManagerViewModel : ViewModelBase
     [RelayCommand]
     private async Task Save()
     {
-        if (CurrentFile == null || _sourceFilePath == null)
-            return;
+        if (CurrentFile == null || _sourceFilePath == null) return;
 
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
             return;
@@ -113,21 +141,21 @@ public partial class PageManagerViewModel : ViewModelBase
             FileTypeChoices = new[] { new FilePickerFileType("PDF文件") { Patterns = new[] { "*.pdf" } } }
         });
 
-        if (file == null)
-            return;
+        if (file == null) return;
 
         IsProcessing = true;
 
         try
         {
-            var newOrder = CurrentFile.Pages.Select(p => p.PageNumber).ToList();
-            await _pdfService.ReorderPagesAsync(_sourceFilePath, newOrder, file.Path.LocalPath);
-            
-            // TODO: 显示成功提示
+            await _pdfService.SavePagesAsync(_sourceFilePath, CurrentFile.Pages.ToList(), file.Path.LocalPath);
+
+            WeakReferenceMessenger.Default.Send(
+                new NotificationMessage(new NotificationInfo { Message = "PDF保存成功", Type = NotificationType.Success }));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            // TODO: 显示错误提示
+            WeakReferenceMessenger.Default.Send(
+                new NotificationMessage(new NotificationInfo { Message = "保存失败", Type = NotificationType.Error }));
         }
         finally
         {
