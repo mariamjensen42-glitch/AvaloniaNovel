@@ -42,8 +42,7 @@ public partial class MainViewModel : ViewModelBase
 
     private async void ShowNotification(string message, NotificationType type)
     {
-        _notificationId++;
-        var id = _notificationId;
+        var id = Interlocked.Increment(ref _notificationId);
 
         NotificationMessage = message;
         NotificationSeverity = type switch
