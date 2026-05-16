@@ -21,38 +21,43 @@
         <vm:MainViewModel />
     </Design.DataContext>
 
-    <Grid ColumnDefinitions="48,*">
+    <Grid RowDefinitions="*,Auto" ColumnDefinitions="48,*">
         <Border Grid.Column="0" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
             <StackPanel Spacing="4" Margin="0,48,0,0">
                 <ToggleButton IsChecked="{Binding IsMergeView}"
                               Width="40" Height="40"
                               HorizontalAlignment="Center"
                               ToolTip.Tip="合并PDF">
-                    <TextBlock Text="M" FontSize="18" FontWeight="Bold" />
+                    <ui:SymbolIcon Symbol="Document" FontSize="20" />
                 </ToggleButton>
                 <ToggleButton IsChecked="{Binding IsSplitView}"
                               Width="40" Height="40"
                               HorizontalAlignment="Center"
                               ToolTip.Tip="拆分PDF">
-                    <TextBlock Text="S" FontSize="18" FontWeight="Bold" />
+                    <ui:SymbolIcon Symbol="Cut" FontSize="20" />
                 </ToggleButton>
                 <ToggleButton IsChecked="{Binding IsPageManagerView}"
                               Width="40" Height="40"
                               HorizontalAlignment="Center"
                               ToolTip.Tip="页面管理">
-                    <TextBlock Text="P" FontSize="18" FontWeight="Bold" />
+                    <ui:SymbolIcon Symbol="Page" FontSize="20" />
                 </ToggleButton>
                 <ToggleButton IsChecked="{Binding IsSettingsView}"
                               Width="40" Height="40"
                               HorizontalAlignment="Center"
                               ToolTip.Tip="设置">
-                    <TextBlock Text="G" FontSize="18" FontWeight="Bold" />
+                    <ui:SymbolIcon Symbol="Settings" FontSize="20" />
                 </ToggleButton>
             </StackPanel>
         </Border>
 
         <ContentControl Grid.Column="1" Content="{Binding CurrentPage}" />
+
+        <ui:InfoBar Grid.Row="1" Grid.ColumnSpan="2"
+                    IsOpen="{Binding IsNotificationVisible}"
+                    Message="{Binding NotificationMessage}"
+                    Severity="{Binding NotificationSeverity}"
+                    IsClosable="True" />
     </Grid>
 
 </wnd:AppWindow>
-
