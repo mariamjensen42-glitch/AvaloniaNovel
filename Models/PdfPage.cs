@@ -1,12 +1,19 @@
-using System;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Avalonia.Media.Imaging;
 
 namespace AgentNovel.Models;
 
-public class PdfPage
+public partial class PdfPage : ObservableObject
 {
-    public int PageNumber { get; set; }
-    public int Rotation { get; set; } = 0;
-    public Bitmap? Thumbnail { get; set; }
-    public bool IsSelected { get; set; }
+    [ObservableProperty]
+    private int _pageNumber;
+
+    [ObservableProperty]
+    private int _rotation;
+
+    [ObservableProperty]
+    private Bitmap? _thumbnail;
+
+    [ObservableProperty]
+    private bool _isSelected;
 }
